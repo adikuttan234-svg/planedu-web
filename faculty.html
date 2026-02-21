@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty HQ | planEDU Infrastructure</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      display: flex;
+      background: var(--bg-soft);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-base);
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar-header {
+      padding: 32px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-base);
+    }
+
+    .nav-group {
+      padding: 24px 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 24px 0 12px 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      margin-bottom: 4px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item i {
+      font-size: 1.25rem;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-soft);
+      color: var(--brand-primary);
+    }
+
+    .nav-item.active-btn {
+      background: rgba(79, 70, 229, 0.1);
+      color: var(--brand-primary);
+    }
+
+    .main-content {
+      margin-left: 280px;
+      flex: 1;
+      width: calc(100% - 280px);
+    }
+
+    .top-bar {
+      height: 80px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-base);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .content-area {
+      padding: 40px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      padding: 24px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-base);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+    }
+
+    .personal-slot {
+      background: rgba(79, 70, 229, 0.05);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      border-right: 4px solid var(--brand-primary);
+      text-align: left;
+    }
+
+    .personal-slot b {
+      color: var(--brand-primary);
+      display: block;
+      font-size: 0.9rem;
+    }
+
+    .personal-slot span {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .section {
+      display: none;
+      animation: fadeInUp 0.4s ease-out;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .is-lab {
+      background: rgba(16, 185, 129, 0.05);
+    }
+  </style>
+</head>
+
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div
+        style="width: 32px; height: 32px; background: var(--brand-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800;">
+        P</div>
+      <span style="font-weight: 800; font-size: 1.2rem; color: var(--text-strong);">planEDU</span>
+    </div>
+
+    <div style="padding: 24px 24px 0; text-align: center;">
+      <div style="position: relative; display: inline-block;">
+        <div
+          style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--brand-primary); overflow: hidden; background: var(--bg-soft); display: flex; align-items: center; justify-content: center;">
+          <img id="sidebar-avatar" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+          <span id="sidebar-letter" style="font-size: 2rem; font-weight: 800; color: var(--brand-primary);">F</span>
+        </div>
+        <div
+          style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: var(--success); border: 3px solid var(--bg-card); border-radius: 50%;">
+        </div>
+      </div>
+      <h4 id="facNameDisplay" style="margin-top: 16px; margin-bottom: 4px;">Faculty Intelligence</h4>
+      <span
+        style="font-size: 0.7rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.05em;">Academic
+        Rank: Professional</span>
+    </div>
+
+    <nav class="nav-group">
+      <div class="nav-label">Operational Hub</div>
+      <button class="nav-item active-btn" id="btn-dashboard" onclick="showSection('dashboard')">
+        <i class="ri-dashboard-3-line"></i> <span>Pulse Dashboard</span>
+      </button>
+
+      <div class="nav-label">Scheduling Intel</div>
+      <button class="nav-item" id="btn-master" onclick="showSection('master')">
+        <i class="ri-calendar-event-line"></i> <span>Consolidated Grid</span>
+      </button>
+      <button class="nav-item" id="btn-personal-sem" onclick="showSection('personal-sem')">
+        <i class="ri-survey-line"></i> <span>Semester Insight</span>
+      </button>
+      <button class="nav-item" id="btn-department" onclick="showSection('department')">
+        <i class="ri-global-line"></i> <span>Department View</span>
+      </button>
+
+      <div class="nav-label">Personnel Control</div>
+      <button class="nav-item" id="btn-leave-mgmt" onclick="showSection('leave-mgmt')">
+        <i class="ri-user-voice-line"></i> <span>Substitution Portal</span>
+      </button>
+      <button class="nav-item" id="btn-profile" onclick="showSection('profile')">
+        <i class="ri-user-settings-line"></i> <span>Intelligence Profile</span>
+      </button>
+    </nav>
+
+    <div style="padding: 16px; border-top: 1px solid var(--border-base);">
+      <button class="nav-item" onclick="toggleDarkMode()">
+        <i id="dark-icon" class="ri-sun-line"></i> <span id="dark-text">Switch Mode</span>
+      </button>
+      <button class="nav-item" onclick="logout()" style="color: var(--error);">
+        <i class="ri-logout-box-line"></i> <span>Terminate Session</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div style="display: flex; flex-direction: column;">
+        <h2 id="page-title" style="margin: 0; font-size: 1.4rem;">Pulse Dashboard</h2>
+        <span id="welcomeMsg" style="font-size: 0.85rem; color: var(--text-muted);">Synchronizing faculty resource
+          data...</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 24px;">
+        <div id="liveClock"
+          style="font-family: monospace; font-weight: 800; color: var(--brand-primary); background: rgba(79, 70, 229, 0.1); padding: 8px 16px; border-radius: 30px;">
+          00:00:00</div>
+        <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 2000;"></div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <!-- DASHBOARD -->
+      <div id="dashboard" class="section active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(79, 70, 229, 0.1); color: var(--brand-primary);"><i
+                class="ri-bar-chart-groupped-line"></i></div>
+            <span
+              style="font-size: 0.75rem; font-weight: 800; color: var(--text-soft); text-transform: uppercase;">Workload
+              Balance</span>
+            <div id="stat-total" style="font-size: 2rem; font-weight: 800; margin-top: 8px;">0h</div>
+            <div
+              style="width: 100%; height: 6px; background: var(--bg-soft); border-radius: 3px; margin-top: 16px; overflow: hidden;">
+              <div id="workloadProgress"
+                style="width: 0%; height: 100%; background: var(--brand-primary); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);">
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);"><i
+                class="ri-book-read-line"></i></div>
+            <span
+              style="font-size: 0.75rem; font-weight: 800; color: var(--text-soft); text-transform: uppercase;">Active
+              Assignments</span>
+            <div id="stat-theory" style="font-size: 2rem; font-weight: 800; margin-top: 8px;">0 Units</div>
+          </div>
+          <div class="stat-card" style="background: var(--brand-primary); color: white;">
+            <div class="stat-icon" style="background: rgba(255, 255, 255, 0.2);"><i class="ri-time-line"></i></div>
+            <span
+              style="font-size: 0.75rem; font-weight: 800; color: rgba(255, 255, 255, 0.8); text-transform: uppercase;">Next
+              Engagement</span>
+            <div id="nextClassWidget" style="margin-top: 8px;">
+              <div style="font-weight: 800; font-size: 1.1rem;">Operational Idle</div>
+              <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.8);">No sessions recorded.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom: 24px;">Active Academic Assignments</h3>
+          <div class="table-wrapper">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Subject Module</th>
+                  <th>Classification</th>
+                  <th>Department Sem</th>
+                  <th>Weekly Load</th>
+                  <th>Assigned Room</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEAVE MANAGEMENT -->
+      <div id="leave-mgmt" class="section">
+        <div class="card" style="margin-bottom: 32px;">
+          <h3>Substitution Protocol Initialization</h3>
+          <p style="color: var(--text-muted); margin-bottom: 32px;">Initializing a substitution request triggers the AI
+            conflict-resolution engine for department admins.</p>
+
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            <div class="form-group">
+              <label class="form-label">Engagement Day</label>
+              <select id="leaveDay" class="input-field">
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target Period (1-6)</label>
+              <input type="number" id="leavePeriod" min="1" max="6" class="input-field" placeholder="e.g. 3">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label class="form-label">Operational Intel / Reason</label>
+              <input type="text" id="leaveReason" class="input-field" placeholder="Diagnostic or personnel reason...">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="submitLeave()">
+            Initialize Substitution Request
+            <i class="ri-send-plane-fill"></i>
+          </button>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom: 24px;">Communication Log</h3>
+          <div id="myLeaveList" style="display: flex; flex-direction: column; gap: 16px;"></div>
+        </div>
+      </div>
+
+      <!-- MASTER TIMETABLE -->
+      <div id="master" class="section">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+            <h3>Consolidated Grid Analysis</h3>
+            <button class="btn btn-secondary" onclick="window.print()">
+              <i class="ri-printer-line"></i> Print Intelligence
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table id="masterTable" class="premium-table"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEMESTER INSIGHT -->
+      <div id="personal-sem" class="section">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+            <h3>Semester-Specific Insight</h3>
+            <select id="persSemSelect" class="input-field" style="width: 250px;" onchange="renderPersonalSemTable()">
+              <option value="">Choose Targeted Semester...</option>
+            </select>
+          </div>
+          <div class="table-wrapper">
+            <table id="persSemTable" class="premium-table"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPARTMENT VIEW -->
+      <div id="department" class="section">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+            <h3>Department Full-Spectrum Grid</h3>
+            <select id="deptSemSelect" class="input-field" style="width: 250px;" onchange="renderDeptSemTable()">
+              <option value="">Target Semester Awareness...</option>
+            </select>
+          </div>
+          <div class="table-wrapper">
+            <table id="deptSemTable" class="premium-table"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTELLIGENCE PROFILE -->
+      <div id="profile" class="section">
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 40px;">
+            <div id="profileCircle"
+              style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--brand-primary); margin: 0 auto 20px; overflow: hidden; background: var(--bg-soft); display: flex; align-items: center; justify-content: center;">
+              <img id="profilePreview" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+              <span id="profileLetter" style="font-size: 3rem; font-weight: 800; color: var(--brand-primary);">F</span>
+            </div>
+            <button class="btn btn-secondary" onclick="getEl('fileUpload').click()"
+              style="padding: 8px 16px; font-size: 0.8rem;">
+              Update Profile Avatar
+            </button>
+            <input type="file" id="fileUpload" accept="image/*" style="display: none;"
+              onchange="handleFileUpload(event)">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+            <div class="form-group">
+              <label class="form-label">Asset Identity / Name</label>
+              <input type="text" id="profName" class="input-field">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Communication Channel / Email</label>
+              <input type="email" id="profEmail" class="input-field">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unit Department</label>
+              <input type="text" id="profDept" class="input-field">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Public Avatar URL</label>
+              <input type="text" id="profImgUrl" class="input-field" oninput="updateProfilePreview(this.value)">
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width: 100%;" onclick="updateProfile()">
+            Update Intelligence Profile
+            <i class="ri-refresh-line"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  </div>
+
+  <script>
+    const API = "/api";
+    let currentUser = null;
+    let allSchedules = [];
+    let allSubjects = [];
+    let allFacultyDetails = [];
+    const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+    const getEl = (id) => document.getElementById(id);
+
+    /* TOAST SYSTEM */
+    function showToast(message, type = 'info') {
+      const container = getEl('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      let icon = 'ri-information-line';
+      if (type === 'success') icon = 'ri-checkbox-circle-line';
+      if (type === 'error') icon = 'ri-error-warning-line';
+
+      toast.innerHTML = `
+        <i class="${icon}" style="font-size: 1.2rem; color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : 'var(--brand-primary)'}"></i>
+        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-strong);">${message}</div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        toast.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        setTimeout(() => toast.remove(), 400);
+      }, 3000);
+    }
+
+    /* LIVE CLOCK */
+    function startClock() {
+      setInterval(() => {
+        const now = new Date();
+        getEl('liveClock').innerText = now.toLocaleTimeString();
+      }, 1000);
+    }
+
+    /* DARK MODE */
+    function toggleDarkMode() {
+      const isDark = document.body.classList.toggle('dark');
+      localStorage.setItem('facultyDarkMode', isDark);
+      const icon = getEl('dark-icon');
+      icon.className = isDark ? 'ri-moon-line' : 'ri-sun-line';
+      showToast(isDark ? "Dark-spectrum mode engaged" : "Light-spectrum mode engaged", "info");
+    }
+
+    /* INITIALIZATION */
+    (async function init() {
+      startClock();
+      if (localStorage.getItem('facultyDarkMode') === 'true') {
+        document.body.classList.add('dark');
+        getEl('dark-icon').className = 'ri-moon-line';
+      }
+
+      const userStr = sessionStorage.getItem("user");
+      if (!userStr) {
+        location.href = "login.html";
+        return;
+      }
+      currentUser = JSON.parse(userStr);
+
+      getEl('facNameDisplay').innerText = currentUser.name || "Faculty Asset";
+      getEl('welcomeMsg').innerText = `HQ Status: Synchronized for ${currentUser.name || "Personnel"}.`;
+
+      if (currentUser.profileImg) {
+        updateProfilePreview(currentUser.profileImg);
+      }
+
+      await loadData();
+      loadProfileFields();
+    })();
+
+    function loadProfileFields() {
+      if (!currentUser) return;
+      getEl('profName').value = currentUser.name || "";
+      getEl('profEmail').value = currentUser.email || "";
+      getEl('profDept').value = currentUser.dept || "Unassigned Unit";
+      getEl('profImgUrl').value = currentUser.profileImg || "";
+      updateProfilePreview(currentUser.profileImg);
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        getEl('profImgUrl').value = e.target.result;
+        updateProfilePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateProfilePreview(url) {
+      const img = getEl('profilePreview');
+      const letter = getEl('profileLetter');
+      const sideImg = getEl('sidebar-avatar');
+      const sideLetter = getEl('sidebar-letter');
+
+      const nameLetter = (currentUser.name || "F").charAt(0).toUpperCase();
+
+      if (url && url.length > 5) {
+        img.src = url;
+        img.style.display = 'block';
+        letter.style.display = 'none';
+        if (sideImg) {
+          sideImg.src = url;
+          sideImg.style.display = 'block';
+          sideLetter.style.display = 'none';
+        }
+      } else {
+        img.style.display = 'none';
+        letter.innerText = nameLetter;
+        letter.style.display = 'block';
+        if (sideImg) {
+          sideImg.style.display = 'none';
+          sideLetter.innerText = nameLetter;
+          sideLetter.style.display = 'block';
+        }
+      }
+    }
+
+    async function updateProfile() {
+      const payload = {
+        name: getEl('profName').value,
+        email: getEl('profEmail').value,
+        dept: getEl('profDept').value,
+        profileImg: getEl('profImgUrl').value
+      };
+
+      try {
+        const res = await fetch(`${API}/faculty/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem("token")}`
+          },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const result = await res.json();
+          showToast("Global ID Updated.", "success");
+          if (result.user) {
+            currentUser = result.user;
+            sessionStorage.setItem("user", JSON.stringify(currentUser));
+          }
+          getEl('facNameDisplay').innerText = currentUser.name;
+          updateProfilePreview(currentUser.profileImg);
+          await loadData();
+        } else {
+          showToast("Sync Error: Profile update rejected", "error");
+        }
+      } catch (e) { showToast("Internal Linkage Failure", "error"); }
+    }
+
+    async function loadData() {
+      try {
+        const [schedRes, subRes, facRes] = await Promise.all([
+          fetch(`${API}/admin/schedules`, { headers: { 'Authorization': `Bearer ${sessionStorage.getItem("token")}` } }),
+          fetch(`${API}/subject`, { headers: { 'Authorization': `Bearer ${sessionStorage.getItem("token")}` } }),
+          fetch(`${API}/faculty`, { headers: { 'Authorization': `Bearer ${sessionStorage.getItem("token")}` } })
+        ]);
+
+        allSchedules = await schedRes.json();
+        allSubjects = await subRes.json();
+        allFacultyDetails = await facRes.json();
+
+        if (allSchedules.data) allSchedules = allSchedules.data;
+        if (allSubjects.data) allSubjects = allSubjects.data;
+        if (allFacultyDetails.data) allFacultyDetails = allFacultyDetails.data;
+
+        populateSelects();
+        renderDashboard();
+      } catch (e) { showToast("Master Database Sync Failure", "error"); }
+    }
+
+    function populateSelects() {
+      const sems = [...new Set(allSchedules.map(s => s.sem))].sort();
+      const options = '<option value="">Target Semester Awareness...</option>' +
+        sems.map(s => `<option value="${s}">Institutional Semester ${s}</option>`).join('');
+
+      document.getElementById('persSemSelect').innerHTML = options;
+      document.getElementById('deptSemSelect').innerHTML = options;
+    }
+
+    function showSection(id) {
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active-btn"));
+
+      document.getElementById(id).classList.add("active");
+      document.getElementById('btn-' + id).classList.add("active-btn");
+
+      const titles = {
+        'dashboard': 'Pulse Dashboard',
+        'master': 'Consolidated Grid Analysis',
+        'personal-sem': 'Semester-Specific Insight',
+        'department': 'Full-Spectrum Grid View',
+        'leave-mgmt': 'Substitution Protocol',
+        'profile': 'Intelligence Profile'
+      };
+      getEl('page-title').innerText = titles[id];
+
+      if (id === 'master') renderMasterTable();
+      if (id === 'leave-mgmt') fetchMyLeaves();
+    }
+
+    function renderDashboard() {
+      const cName = (currentUser.name || "").toString().trim();
+      const mySubjs = allSubjects.filter(s => (s.teacher || "").toString().trim() === cName);
+      const totalHrs = mySubjs.reduce((a, b) => a + (b.weeklyHrs || 0), 0);
+
+      getEl('stat-total').innerText = totalHrs + 'h';
+      getEl('stat-theory').innerText = mySubjs.length + ' Units';
+
+      const facRef = allFacultyDetails.find(f => (f.name || "").toString().trim() === cName);
+      if (facRef) {
+        const progress = (totalHrs / (facRef.hours || 30)) * 100;
+        getEl('workloadProgress').style.width = Math.min(progress, 100) + '%';
+      }
+
+      const tbody = getEl('summaryTable');
+      if (mySubjs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:64px; color:var(--text-soft);">Zero module assignments currently synchronized.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = mySubjs.map(s => `
+        <tr>
+          <td><div style="font-weight:700;">${s.name}</div></td>
+          <td><span class="badge ${s.type === 'lab' ? 'badge-lab' : 'badge-theory'}">${s.type.toUpperCase()}</span></td>
+          <td><span style="font-weight:600;">Sem ${s.sem}</span></td>
+          <td><span style="font-weight:800; color:var(--brand-primary);">${s.weeklyHrs}h / wk</span></td>
+          <td><div style="display:flex; align-items:center; gap:8px;"><i class="ri-building-line" style="color:var(--text-soft);"></i> ${s.room}</div></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderMasterTable() {
+      const table = getEl('masterTable');
+      let html = `<thead><tr><th>DAY</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr></thead><tbody>`;
+
+      DAYS.forEach(day => {
+        html += `<tr><td style="background:var(--bg-soft); font-weight:800; color:var(--brand-primary);">${day.toUpperCase()}</td>`;
+        for (let p = 1; p <= 6; p++) {
+          let contents = [];
+          allSchedules.forEach(sched => {
+            const cName = (currentUser.name || "").toString().trim();
+            const slot = sched.scheduleData[day][p];
+            if (slot && (slot.teacher === cName || slot.labAssistant === cName)) {
+              contents.push(`
+                <div class="personal-slot ${slot.type === 'lab' ? 'is-lab' : ''}">
+                    <b>${slot.name}</b>
+                    <span>Sem ${sched.sem} • RM ${slot.room}</span>
+                </div>
+              `);
+            }
+          });
+          html += `<td style="vertical-align:top; min-width:140px;">${contents.join('') || '<span style="color:var(--text-soft); font-size:0.7rem;">IDLE</span>'}</td>`;
+        }
+        html += `</tr>`;
+      });
+      table.innerHTML = html + "</tbody>";
+    }
+
+    function renderPersonalSemTable() {
+      const sem = getEl('persSemSelect').value;
+      const table = getEl('persSemTable');
+      if (!sem) { table.innerHTML = ""; return; }
+
+      const sched = allSchedules.find(s => s.sem == sem);
+      let html = `<thead><tr><th>DAY</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr></thead><tbody>`;
+
+      DAYS.forEach(day => {
+        html += `<tr><td style="background:var(--bg-soft); font-weight:800; color:var(--brand-primary);">${day.toUpperCase()}</td>`;
+        for (let p = 1; p <= 6; p++) {
+          const cName = (currentUser.name || "").toString().trim();
+          const slot = sched.scheduleData[day][p];
+          const isMe = slot && (slot.teacher === cName || slot.labAssistant === cName);
+          html += `<td style="vertical-align:top;">${isMe ? `
+                <div class="personal-slot ${slot.type === 'lab' ? 'is-lab' : ''}">
+                    <b>${slot.name}</b>
+                    <span>RM ${slot.room}</span>
+                </div>` : '<span style="color:var(--text-soft); font-size:0.7rem;">VOID</span>'}</td>`;
+        }
+        html += `</tr>`;
+      });
+      table.innerHTML = html + "</tbody>";
+    }
+
+    function renderDeptSemTable() {
+      const sem = getEl('deptSemSelect').value;
+      const table = getEl('deptSemTable');
+      if (!sem) { table.innerHTML = ""; return; }
+
+      const sched = allSchedules.find(s => s.sem == sem);
+      let html = `<thead><tr><th>DAY</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr></thead><tbody>`;
+
+      DAYS.forEach(day => {
+        html += `<tr><td style="background:var(--bg-soft); font-weight:800; color:var(--brand-primary);">${day.toUpperCase()}</td>`;
+        for (let p = 1; p <= 6; p++) {
+          const slot = sched.scheduleData[day][p];
+          let cell = '<span style="color:var(--text-soft); font-size:0.75rem;">EMPTY</span>';
+          let isMe = false;
+          if (slot) {
+            const cName = (currentUser.name || "").toString().trim();
+            isMe = (slot.teacher === cName || slot.labAssistant === cName);
+            cell = `
+                <div style="font-weight:800; font-size:0.85rem;">${slot.name}</div>
+                <div style="font-size:0.7rem; color:var(--brand-primary); margin-top:4px;">${slot.teacher}</div>
+                <div style="font-size:0.65rem; color:var(--text-soft); margin-top:2px;">RM ${slot.room}</div>
+            `;
+          }
+          html += `<td style="background:${isMe ? 'rgba(79, 70, 229, 0.05)' : 'transparent'}; opacity:${slot && !isMe ? '0.4' : '1'}">${cell}</td>`;
+        }
+        html += `</tr>`;
+      });
+      table.innerHTML = html + "</tbody>";
+    }
+
+    async function submitLeave() {
+      const day = getEl('leaveDay').value;
+      const period = getEl('leavePeriod').value;
+      const reason = getEl('leaveReason').value;
+
+      if (!period || !reason) { showToast("Operational parameters missing.", "error"); return; }
+
+      try {
+        const res = await fetch(`${API}/leave-request`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem("token")}`
+          },
+          body: JSON.stringify({ day, period, reason })
+        });
+        if (res.ok) {
+          showToast("Substitution protocol initialized.", "success");
+          getEl('leaveReason').value = "";
+          fetchMyLeaves();
+        }
+      } catch (e) { showToast("Communication Error", "error"); }
+    }
+
+    async function fetchMyLeaves() {
+      try {
+        const res = await fetch(`${API}/admin/pending-leaves`, {
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem("token")}` }
+        });
+        const all = await res.json();
+        const my = all.filter(l => l.facultyId === currentUser._id || l.facultyName === currentUser.name);
+
+        const list = getEl('myLeaveList');
+        if (my.length === 0) {
+          list.innerHTML = `
+            <div style="text-align:center; padding:32px; background:var(--bg-soft); border-radius:12px;">
+                <i class="ri-history-line" style="font-size:2rem; color:var(--text-soft);"></i>
+                <p style="color:var(--text-soft); margin-top:8px;">Protocol history is clear.</p>
+            </div>`;
+          return;
+        }
+
+        list.innerHTML = my.map(l => `
+          <div class="card" style="padding:16px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border-base);">
+            <div>
+              <div style="font-weight:800; font-size:1rem;">${l.day.toUpperCase()} <span style="color:var(--brand-primary); margin:0 8px;">/</span> PERIOD ${l.period}</div>
+              <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${l.reason}</div>
+            </div>
+            <div style="padding:4px 12px; border-radius:30px; font-size:0.7rem; font-weight:800; text-transform:uppercase; background:${l.status === 'pending' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)'}; color:${l.status === 'pending' ? 'var(--warning)' : 'var(--success)'};">
+              ${l.status}
+            </div>
+          </div>
+        `).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    function logout() { sessionStorage.clear(); location.href = "login.html"; }
+  </script>
+</body>
+
+</html>

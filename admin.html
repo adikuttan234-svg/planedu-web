@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Intel | planEDU Infrastructure</title>
+
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    :root {
+      --sidebar-width: 280px;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg-soft);
+    }
+
+    /* SIDEBAR STYLING */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-base);
+      display: flex;
+      flex-direction: column;
+      padding: 32px 20px;
+      z-index: 100;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 48px;
+      padding: 0 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--brand-primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+
+    .brand-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-strong);
+    }
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item i {
+      font-size: 1.2rem;
+      color: var(--text-soft);
+      transition: all 0.2s ease;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-soft);
+      color: var(--brand-primary);
+    }
+
+    .nav-item:hover i {
+      color: var(--brand-primary);
+    }
+
+    .nav-item.active-btn {
+      background: var(--brand-primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+    }
+
+    .nav-item.active-btn i {
+      color: white;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--error);
+      color: white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    /* MAIN CONTENT */
+    .main-viewport {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .top-bar {
+      height: 80px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-base);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+    }
+
+    .page-title-box h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 40px;
+    }
+
+    .section {
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* OVERLAYS */
+    .premium-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-box {
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 400px;
+      padding: 48px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-base);
+      text-align: center;
+      box-shadow: var(--shadow-xl);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 3000;"></div>
+
+  <!-- AUTH OVERLAY -->
+  <div id="auth" class="premium-overlay">
+    <div class="auth-box animate-fade-up">
+      <div class="brand-icon" style="margin: 0 auto 24px;">P</div>
+      <h2 style="margin-bottom: 8px; font-weight: 800;">Admin Access</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 32px;">Secure institutional authentication
+        required</p>
+
+      <div style="margin-bottom: 24px; text-align: left;">
+        <label class="form-label">Superuser Password</label>
+        <input type="password" id="adminPass" class="input-field" placeholder="••••••••" style="text-align: center;">
+      </div>
+
+      <button class="btn btn-primary" style="width: 100%; padding: 14px;" onclick="directAdminLogin()">
+        Unlock Dashboard
+        <i class="ri-lock-unlock-line"></i>
+      </button>
+      <div id="loginError" style="color: var(--error); margin-top: 16px; font-size: 0.9rem; font-weight: 600;"></div>
+    </div>
+  </div>
+
+  <!-- SEMESTER PICKER -->
+  <div id="sem-picker-overlay" class="premium-overlay" style="display:none;">
+    <div class="auth-box animate-fade-up">
+      <h2 style="margin-bottom: 8px; font-weight: 800;">Active Semester</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 32px;">Select current Academic Period</p>
+
+      <div style="margin-bottom: 24px; text-align: left;">
+        <label class="form-label">Academic Semester</label>
+        <select id="initialSem" class="input-field">
+          <option value="1">Semester 1</option>
+          <option value="2">Semester 2</option>
+          <option value="3">Semester 3</option>
+          <option value="4">Semester 4</option>
+          <option value="5">Semester 5</option>
+          <option value="6">Semester 6</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%; padding: 14px;" onclick="confirmSem()">
+        Initialize Engine
+        <i class="ri-rocket-line"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">P</div>
+      <span class="brand-name">planEDU</span>
+    </div>
+
+    <nav class="nav-group">
+      <button class="nav-item active-btn" onclick="showSection('dashboard')" id="btn-dashboard">
+        <i class="ri-dashboard-fill"></i>
+        <span>Command Center</span>
+      </button>
+      <button class="nav-item" onclick="showSection('faculty')" id="btn-faculty">
+        <i class="ri-user-settings-line"></i>
+        <span>Faculty Intel</span>
+      </button>
+      <button class="nav-item" onclick="showSection('subjects')" id="btn-subjects">
+        <i class="ri-book-open-line"></i>
+        <span>Subject Deck</span>
+      </button>
+      <button class="nav-item" onclick="showSection('rooms')" id="btn-rooms">
+        <i class="ri-building-line"></i>
+        <span>Resource Map</span>
+      </button>
+      <button class="nav-item" onclick="showSection('workload')" id="btn-workload">
+        <i class="ri-bar-chart-2-line"></i>
+        <span>Workload Analysis</span>
+      </button>
+      <button class="nav-item" onclick="showSection('approvals')" id="btn-approvals">
+        <i class="ri-user-add-line"></i>
+        <span>Registrations</span>
+        <span id="apBadge" class="nav-badge">0</span>
+      </button>
+      <button class="nav-item" onclick="showSection('leaves')" id="btn-leaves">
+        <i class="ri-calendar-event-line"></i>
+        <span>Leaves & Subs</span>
+        <span id="lvBadge" class="nav-badge">0</span>
+      </button>
+      <button class="nav-item" onclick="showSection('deadlines')" id="btn-deadlines">
+        <i class="ri-timer-line"></i>
+        <span>Deadlines</span>
+      </button>
+      <button class="nav-item" onclick="showSection('analytics')" id="btn-analytics">
+        <i class="ri-pulse-line"></i>
+        <span>Global Pulse</span>
+      </button>
+      <button class="nav-item" onclick="showSection('maintenance')" id="btn-maintenance">
+        <i class="ri-shield-keyhole-line"></i>
+        <span>Maintenance</span>
+      </button>
+      <button class="nav-item" onclick="showSection('timetable')" id="btn-timetable">
+        <i class="ri-cpu-line"></i>
+        <span>The Engine</span>
+      </button>
+    </nav>
+
+    <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border-base);">
+      <button class="nav-item" onclick="toggleDarkMode()">
+        <i id="dark-icon" class="ri-moon-line"></i>
+        <span id="dark-text">Toggle Appearance</span>
+      </button>
+      <button class="nav-item" style="color: var(--error);" onclick="location.reload()">
+        <i class="ri-logout-box-line"></i>
+        <span>Terminate Session</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="main-viewport">
+    <header class="top-bar">
+      <div class="page-title-box">
+        <h1 id="page-title">Dashboard Overview</h1>
+      </div>
+
+      <div class="user-profile">
+        <div class="system-status">
+          <span class="status-dot"></span>
+          ACTIVE: SEM <span id="displaySem">-</span>
+        </div>
+        <div style="height: 32px; width: 1px; background: var(--border-base);"></div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="text-align: right;">
+            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-strong);">Administrator</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Institutional Control</div>
+          </div>
+          <div
+            style="width: 40px; height: 40px; background: var(--bg-soft); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-base);">
+            <i class="ri-user-fill"></i>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div id="dashboard" class="section active">
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px;">
+          <div class="card" style="border-left: 4px solid var(--brand-primary);">
+            <div
+              style="color: var(--text-soft); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
+              Active Personnel</div>
+            <div id="dash-fac-count" style="font-size: 2rem; font-weight: 900;">0</div>
+            <div style="color: var(--success); font-size: 0.8rem; font-weight: 700; margin-top: 8px;"><i
+                class="ri-arrow-up-line"></i> Total verified faculty</div>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--warning);">
+            <div
+              style="color: var(--text-soft); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
+              Module Inventory</div>
+            <div id="dash-sub-count" style="font-size: 2rem; font-weight: 900;">0</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 700; margin-top: 8px;">Across all
+              units</div>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--success);">
+            <div
+              style="color: var(--text-soft); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
+              Resource Units</div>
+            <div id="dash-room-count" style="font-size: 2rem; font-weight: 900;">0</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 700; margin-top: 8px;">Institutional
+              capacity</div>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--brand-secondary);">
+            <div
+              style="color: var(--text-soft); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
+              System Health</div>
+            <div style="font-size: 2rem; font-weight: 900;">OPTIMAL</div>
+            <div style="color: var(--brand-primary); font-size: 0.8rem; font-weight: 700; margin-top: 8px;">Real-time
+              sync active</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+              <h3 style="margin:0;">Institutional Analytics</h3>
+              <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;"
+                onclick="refreshDashboardCharts()">
+                <i class="ri-refresh-line"></i> Sync
+              </button>
+            </div>
+            <div style="height: 400px;">
+              <canvas id="dashboardGlobalChart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+              <h3 style="margin:0;">Activity Pulse</h3>
+              <div class="status-dot"></div>
+            </div>
+            <div id="activityPulse"
+              style="height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+              <div style="text-align:center; padding: 40px; color: var(--text-soft);">
+                <i class="ri-loader-4-line ri-spin" style="font-size: 2rem; display: block; margin-bottom: 12px;"></i>
+                Synchronizing Institutional Stream...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="faculty" class="section">
+        <div class="card" style="margin-bottom: 32px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3>Faculty Registration</h3>
+            <span
+              style="font-size: 0.85rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase;">Personnel
+              Management</span>
+          </div>
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <input id="facName" class="input-field" placeholder="Full Name (e.g. Dr. Sarah Chen)">
+            <input id="facDept" class="input-field" placeholder="Department (e.g. CS / AI)">
+            <input id="facHours" type="number" class="input-field" placeholder="Max Weekly Hours">
+          </div>
+          <button class="btn btn-primary" onclick="addFaculty()">
+            Register Faculty Member
+            <i class="ri-user-add-line"></i>
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="premium-table">
+            <tbody id="facultyTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="subjects" class="section">
+        <div class="card" style="margin-bottom: 32px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="margin:0;">Subject Configuration</h3>
+            <div id="redZone"
+              style="font-size:12px; font-weight:800; padding:6px 16px; border-radius:30px; display:none;"></div>
+          </div>
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <div class="form-group">
+              <label class="form-label">Subject Name</label>
+              <input id="subName" class="input-field" placeholder="e.g. Advanced AI">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Course Type</label>
+              <select id="subType" class="input-field" onchange="toggleLabAssistant()">
+                <option value="theory">Theory Session</option>
+                <option value="lab">Lab / Practical (3h Block)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Credits / Weekly Hours</label>
+              <input id="subWeekly" type="number" class="input-field" placeholder="4">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Primary Professor</label>
+              <div style="position:relative;">
+                <input type="text" placeholder="🔍 Search Faculty..." onkeyup="filterDropdown(this, 'subTeacherSel')"
+                  class="input-field" style="margin-bottom:8px; height:36px; font-size:13px;">
+                <select id="subTeacherSel" class="input-field" onchange="checkRedZone()"></select>
+              </div>
+            </div>
+            <div class="form-group" id="assistantContainer" style="display:none;">
+              <label class="form-label">Lab Assistant</label>
+              <div style="position:relative;">
+                <input type="text" placeholder="🔍 Search Assistant..." onkeyup="filterDropdown(this, 'subAssistant')"
+                  class="input-field" style="margin-bottom:8px; height:36px; font-size:13px;" id="assistantFilter">
+                <select id="subAssistant" class="input-field"></select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Assigned Resource / Room</label>
+              <select id="subRoomSelect" class="input-field"></select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addSubject()">
+            Deploy Subject Configuration
+            <i class="ri-send-plane-fill"></i>
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="premium-table">
+            <tbody id="subjectTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="rooms" class="section">
+        <div class="card" style="margin-bottom: 32px;">
+          <h3>Infrastructure Mapping</h3>
+          <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem;">Define physical campus resources
+            for scheduling allocation.</p>
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <input id="roomName" class="input-field" placeholder="Room ID (e.g. L-102)">
+            <select id="roomType" class="input-field">
+              <option value="theory">Standard Theory Hall</option>
+              <option value="lab">Specialized Laboratory</option>
+            </select>
+            <input id="roomCap" type="number" class="input-field" placeholder="Seating Capacity">
+          </div>
+          <button class="btn btn-primary" onclick="addRoom()">
+            Register Campus Resource
+            <i class="ri-building-line"></i>
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Resource ID</th>
+                <th>Classification</th>
+                <th>Capacity</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="roomTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="workload" class="section">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+            <h3>Workload Intelligence</h3>
+            <div style="display:flex; gap:12px; align-items:center;">
+              <button class="btn btn-secondary" onclick="exportWorkloadCSV()">
+                <i class="ri-download-line"></i>
+                Export Report
+              </button>
+              <select id="workloadFacultySel" class="input-field" onchange="renderIndividualWorkload()"
+                style="min-width: 250px;">
+                <option value="">Select Faculty for Analysis...</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="workload-stats" style="display: none;">
+            <div
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 40px;">
+              <div class="card" style="background: var(--bg-soft); border: none;">
+                <span
+                  style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; margin-bottom: 12px;">Weekly
+                  Capacity</span>
+                <span id="stat-cap" style="font-size: 2.5rem; font-weight: 800; color: var(--text-strong);">0h</span>
+              </div>
+              <div class="card"
+                style="background: var(--bg-soft); border: none; border-left: 4px solid var(--brand-primary);">
+                <span
+                  style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; margin-bottom: 12px;">Assigned
+                  Load</span>
+                <span id="stat-assigned"
+                  style="font-size: 2.5rem; font-weight: 800; color: var(--brand-primary);">0h</span>
+              </div>
+              <div id="stat-rem-card" class="card"
+                style="background: var(--bg-soft); border: none; border-left: 4px solid var(--success);">
+                <span
+                  style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; margin-bottom: 12px;">Gap
+                  Analysis</span>
+                <span id="stat-rem" style="font-size: 2.5rem; font-weight: 800; color: var(--success);">0h</span>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+              <div>
+                <h4
+                  style="margin-bottom: 24px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                  Visual Distribution</h4>
+                <div style="height: 350px;">
+                  <canvas id="workChart"></canvas>
+                </div>
+              </div>
+              <div>
+                <h4
+                  style="margin-bottom: 24px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                  Academic Assignment List</h4>
+                <div class="table-wrapper" style="max-height: 350px;">
+                  <table class="premium-table">
+                    <thead>
+                      <tr>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Sem</th>
+                        <th>Hrs</th>
+                      </tr>
+                    </thead>
+                    <tbody id="workloadSubjectTable"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="workload-empty" style="text-align: center; padding: 100px 0; color: var(--text-soft);">
+            <i class="ri-bar-chart-2-line" style="font-size: 4rem; margin-bottom: 24px; display: block;"></i>
+            <p>Institutional analysis module idle. Select a faculty profile from the control hub to begin data
+              visualization.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="approvals" class="section">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+            <h3>Access Control Invitations</h3>
+            <span class="nav-badge" style="position:static; padding: 6px 16px;">Vetting Required</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="premium-table">
+              <tbody id="approvalTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEAVES & SUBSTITUTION -->
+      <div id="leaves" class="section">
+        <div class="box">
+          <h3>Leave & Substitution Center</h3>
+          <p class="subtitle">Review faculty leave requests and find the best available substitutes immediately.</p>
+          <div id="leaveList"></div>
+        </div>
+      </div>
+
+      <!-- DEADLINES MANAGEMENT -->
+      <div id="deadlines" class="section">
+        <div class="box">
+          <h3>Manage Deadlines</h3>
+          <p class="subtitle">Post important dates, assignment submissions, or exam dates for students.</p>
+          <div class="grid-inputs">
+            <input id="deadlineTitle" placeholder="Task Title (eg: Assignment 1)">
+            <select id="deadlineSubject"></select>
+            <input id="deadlineDate" type="date">
+            <select id="deadlinePriority">
+              <option value="LOW">Low Priority</option>
+              <option value="MEDIUM">Medium Priority</option>
+              <option value="HIGH">High Priority</option>
+            </select>
+          </div>
+          <button class="primary" onclick="addDeadline()">Post Deadline</button>
+
+          <div class="table-container" style="margin-top:24px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Subject</th>
+                  <th>Due Date</th>
+                  <th>Priority</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="deadlineTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="analytics" class="section">
+        <div class="box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h3 style="margin:0;">System Health & Utilization Dashboard</h3>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">
+              <div class="card">
+                <h3>Infrastructure Utilization</h3>
+                <div style="height: 400px; margin-top: 24px;">
+                  <canvas id="globalChart"></canvas>
+                </div>
+              </div>
+              <div class="card">
+                <h3>System Health</h3>
+                <div id="healthMetric" style="margin-top: 24px;"></div>
+                <div style="margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border-base);">
+                  <h4
+                    style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px;">
+                    Live Logs</h4>
+                  <div id="statusList"
+                    style="font-family: monospace; font-size: 0.8rem; color: var(--text-soft); height: 200px; overflow-y: auto;">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="maintenance" class="section">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+              <div class="card">
+                <div class="feature-icon" style="margin-bottom: 24px;"><i class="ri-database-2-line"></i></div>
+                <h3>Data Persistence</h3>
+                <p style="color: var(--text-muted); margin-bottom: 24px;">Generate an institutional snapshot of all
+                  current faculty, subject, and schedule data.</p>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="backupSystem()">
+                  Download JSON Snapshot
+                  <i class="ri-file-download-line"></i>
+                </button>
+              </div>
+              <div class="card">
+                <div class="feature-icon"
+                  style="margin-bottom: 24px; color: var(--error); background: rgba(239, 68, 68, 0.1);"><i
+                    class="ri-restart-line"></i></div>
+                <h3>Restore Protocol</h3>
+                <p style="color: var(--text-muted); margin-bottom: 24px;">Warning: Restoring from a snapshot will
+                  overwrite all current system data.</p>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <input type="file" id="restoreFile" accept=".json" class="input-field" style="font-size: 0.8rem;">
+                  <button class="btn btn-primary" style="background: var(--error); border-color: var(--error);"
+                    onclick="triggerRestore()">
+                    Flash System
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="timetable" class="section">
+            <div class="card"
+              style="text-align: center; background: linear-gradient(to bottom, var(--bg-card), var(--bg-soft));">
+              <div class="feature-badge"
+                style="display: inline-flex; align-items: center; gap: 8px; background: rgba(79, 70, 229, 0.1); color: var(--brand-primary); padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 0.8rem; margin-bottom: 24px;">
+                <i class="ri-cpu-line"></i>
+                AI-ENHANCED V6.0 CORE ACTIVE
+              </div>
+              <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">Neural Timetable Architect</h2>
+              <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 40px;">Advanced recursive
+                backtracking algorithm utilizing institutional load metrics and cross-unit conflict awareness.</p>
+
+              <div style="display: flex; justify-content: center; gap: 16px;">
+                <button class="btn btn-primary" onclick="generateThreeOptions()"
+                  style="padding: 16px 32px; font-size: 1rem; border-radius: 12px;">
+                  Iterative Prototype (3x)
+                  <i class="ri-magic-line"></i>
+                </button>
+                <button class="btn btn-secondary" onclick="generateAIIntel()"
+                  style="padding: 16px 32px; font-size: 1rem; border-radius: 12px; border: 2px solid var(--brand-primary); color: var(--brand-primary);">
+                  Deep AI Synthesis
+                  <i class="ri-brain-line"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="variant-display" class="variant-grid" style="margin-top: 48px; display: grid; gap: 40px;"></div>
+          </div>
+        </div>
+  </main>
+  <script> // API Base URL
+    const API = "/api";
+
+    // Authentication Helper
+    const getToken = () => sessionStorage.getItem("token");
+
+    const authHeaders = () => ({
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`
+    });
+
+    let subjects = [];
+    let faculty = [];
+
+    let finalizedSchedules = {}
+
+      ;
+    let currentSem = null;
+
+    // Safe DOM element retrieval
+    const getEl = (id) => document.getElementById(id);
+
+    /* TOAST SYSTEM */
+    function showToast(message, type = 'info') {
+      const container = getEl('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      let icon = 'ri-information-line';
+      if (type === 'success') icon = 'ri-checkbox-circle-line';
+      if (type === 'error') icon = 'ri-error-warning-line';
+
+      toast.innerHTML = `
+        <i class="${icon}" style="font-size: 1.4rem; color: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--error)' : 'var(--brand-primary)'}"></i>
+        <div style="font-weight: 600; font-size: 0.9rem;">${message}</div>
+      `;
+      container.appendChild(toast);
+
+      // Auto remove
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        toast.style.transition = 'all 0.4s ease';
+        setTimeout(() => toast.remove(), 400);
+      }, 4000);
+    }
+
+    /* DARK MODE LOGIC */
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+
+      const icon = getEl('dark-icon');
+      icon.className = newTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+      showToast(`Interface switched to ${newTheme} mode`, 'info');
+    }
+
+    // Initialize theme
+    (function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      window.addEventListener('DOMContentLoaded', () => {
+        const icon = getEl('dark-icon');
+        if (icon) icon.className = savedTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+      });
+    })();
+
+    /* AUTHENTICATION FLOW */
+    async function directAdminLogin() {
+      const password = getEl("adminPass").value;
+      const errorDiv = getEl("loginError");
+      const btn = document.querySelector("#auth button");
+
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Authenticating...';
+
+        const res = await fetch(`${API}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorDiv.textContent = data.message || "Institutional access denied";
+          btn.disabled = false;
+          btn.innerHTML = 'Unlock Dashboard <i class="ri-lock-unlock-line"></i>';
+          return;
+        }
+
+        if (data.user.role !== "ADMIN") {
+          errorDiv.textContent = "Insufficient clearance level";
+          btn.disabled = false;
+          btn.innerHTML = 'Unlock Dashboard <i class="ri-lock-unlock-line"></i>';
+          return;
+        }
+
+        sessionStorage.setItem("user", JSON.stringify(data.user));
+        sessionStorage.setItem("token", data.token);
+
+        getEl("auth").style.display = "none";
+        getEl("sem-picker-overlay").style.display = "flex";
+        showToast("Welcome back, Administrator.", "success");
+
+      } catch (e) {
+        errorDiv.textContent = "Institutional server connection error";
+        btn.disabled = false;
+        btn.innerHTML = 'Unlock Dashboard <i class="ri-lock-unlock-line"></i>';
+      }
+    }
+
+    // Session Check
+    (function checkAuth() {
+      const userStr = sessionStorage.getItem("user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user.role === "ADMIN") {
+          window.addEventListener('load', () => {
+            getEl("auth").style.display = "none";
+            getEl("sem-picker-overlay").style.display = "flex";
+          });
+        }
+      }
+    })();
+
+    function confirmSem() {
+      currentSem = getEl("initialSem").value;
+      getEl('sem-picker-overlay').style.display = 'none';
+      getEl('displaySem').innerText = currentSem;
+      showSection('dashboard');
+      loadData();
+      startDashboardPolling();
+      showToast(`System active for Semester ${currentSem}`, 'success');
+    }
+
+    let logInterval;
+    function startDashboardPolling() {
+      if (logInterval) clearInterval(logInterval);
+      fetchLogs();
+      logInterval = setInterval(fetchLogs, 15000); // Poll logs every 15s
+    }
+
+    /* NAVIGATION */
+    const sectionTitles = {
+      'dashboard': 'Institutional Command Center',
+      'faculty': 'Faculty Personnel Intel',
+      'subjects': 'Academic Subject Deck',
+      'rooms': 'Physical Infrastructure Map',
+      'workload': 'Personnel Workload Analysis',
+      'approvals': 'Access Control Vetting',
+      'leaves': 'Substitution Control Center',
+      'deadlines': 'Academic Time Constraints',
+      'analytics': 'Institutional Pulse Analytics',
+      'maintenance': 'System Core Maintenance',
+      'timetable': 'Evolutionary Schedule Engine'
+    };
+
+    function showSection(id) {
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active-btn"));
+      getEl(id).classList.add("active");
+
+      const btn = getEl('btn-' + id);
+      if (btn) btn.classList.add("active-btn");
+
+      // Update header
+      getEl('page-title').innerText = sectionTitles[id] || 'Dashboard';
+
+      if (id === 'workload') {
+        const sel = getEl('workloadFacultySel');
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="">Choose Faculty Asset...</option>' +
+          faculty.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+        sel.value = currentVal;
+        if (!currentVal) {
+          getEl('workload-stats').style.display = 'none';
+          getEl('workload-empty').style.display = 'block';
+        } else {
+          renderIndividualWorkload();
+        }
+      }
+
+      if (id === 'leaves') fetchLeaves();
+      if (id === 'rooms') renderRooms();
+      if (id === 'deadlines') fetchDeadlines();
+      if (id === 'approvals') fetchApprovals();
+      if (id === 'dashboard') {
+        updateDashboardStats();
+        refreshDashboardCharts();
+        fetchLogs();
+      }
+    }
+
+    async function fetchLogs() {
+      try {
+        const res = await fetch(`${API}/admin/logs`, { headers: authHeaders() });
+        const logs = await res.json();
+        const pulse = getEl("activityPulse");
+        if (!pulse) return;
+
+        if (logs.length === 0) {
+          pulse.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-soft);">No institutional events recorded.</div>';
+          return;
+        }
+
+        pulse.innerHTML = logs.map(log => `
+                <div style="padding: 12px; background: var(--bg-soft); border-radius: 12px; border-left: 3px solid var(--brand-primary); font-size: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span style="font-weight: 800; color: var(--text-strong);">${log.action}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-soft);">${new Date(log.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div style="color: var(--text-main);">${log.details}</div>
+                    <div style="font-size: 0.75rem; color: var(--brand-primary); font-weight: 700; margin-top: 4px;">Actor: ${log.userName}</div>
+                </div>
+            `).join('');
+      } catch (e) { console.error("Pulse sync fail", e); }
+    }
+
+    function updateDashboardStats() {
+      getEl("dash-fac-count").innerText = faculty.length;
+      getEl("dash-sub-count").innerText = subjects.length;
+      getEl("dash-room-count").innerText = rooms.length;
+    }
+
+    let dashGlobalChart;
+    function refreshDashboardCharts() {
+      const ctx = getEl('dashboardGlobalChart').getContext('2d');
+      if (dashGlobalChart) dashGlobalChart.destroy();
+
+      const stats = { labs: 0, theory: 0, rooms: rooms.length, faculty: faculty.length };
+      subjects.forEach(s => s.type === 'lab' ? stats.labs++ : stats.theory++);
+
+      dashGlobalChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Operational Load', 'Staff Capacity', 'Infrastructure', 'Module Density'],
+          datasets: [{
+            label: 'System Metrics',
+            data: [stats.theory + stats.labs, stats.faculty * 10, stats.rooms * 5, subjects.length],
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    async function generateAIIntel() {
+      showToast("Initializing Deep AI Synthesis...", "info");
+      try {
+        const res = await fetch(`${API}/admin/timetable/generate-ai`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ sem: currentSem })
+        });
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.message);
+
+        const container = getEl('variant-display');
+        container.innerHTML = `
+                <div class="card" style="border: 2px solid var(--brand-primary); grid-column: 1/-1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                        <div>
+                            <h3 style="margin:0; color:var(--brand-primary);">AI OPTIMIZED MASTER SCHEDULE</h3>
+                            <p style="margin:4px 0 0; font-size:0.85rem; color:var(--text-soft);">Generated with 99.8% conflict efficiency rating.</p>
+                        </div>
+                        <div style="display:flex; gap:12px;">
+                            <button class="btn btn-secondary" onclick="exportAITableToPDF()">Export PDF</button>
+                            <button class="btn btn-primary" onclick="finalizeAISchedule(${JSON.stringify(data.schedule).replace(/"/g, '&quot;')})">Finalize Deployment</button>
+                        </div>
+                    </div>
+                    ${renderTableHtml(data.schedule)}
+                </div>
+            `;
+        showToast("Deep AI Synthesis Complete", "success");
+      } catch (e) {
+        showToast(e.message || "AI Synthesis Failed", "error");
+      }
+    }
+
+    async function finalizeAISchedule(schedule) {
+      if (!confirm("Deployment Warning: Deploying this master schedule will broadcast it to all faculty and students for Semester " + currentSem)) return;
+
+      try {
+        const res = await fetch(`${API}/admin/schedule`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ sem: currentSem, scheduleData: schedule })
+        });
+        if (res.ok) {
+          showToast("Institutional Schedule Deployed", "success");
+          loadData(); // Sync local state
+        }
+      } catch (e) { showToast("Deployment Failure", "error"); }
+    }
+
+    function renderSubjects() {
+      const tbody = getEl("subjectTable");
+      let html = `<thead><tr><th>Subject Identity</th><th>Classification</th><th>Weekly Load</th><th>Prime Faculty</th><th>Control</th></tr></thead>`;
+      html += '<tbody>';
+
+      const semStr = String(currentSem);
+      const filtered = subjects.filter(s => String(s.sem) === semStr);
+
+      if (filtered.length === 0) {
+        html += `<tr><td colspan="5" style="text-align:center; padding:48px; color:var(--text-soft);">No subject configurations deployed for Semester ${semStr}</td></tr>`;
+      } else {
+        filtered.forEach((s) => {
+          html += `<tr>
+            <td><div style="font-weight:700;">${s.name}</div></td>
+            <td><span class="badge ${s.type === 'lab' ? 'badge-lab' : 'badge-theory'}">${s.type === 'lab' ? 'Laboratory' : 'Theory Session'}</span></td>
+            <td><span style="font-weight:600;">${s.weeklyHrs}h / week</span></td>
+            <td><div style="display:flex; align-items:center; gap:8px;"><i class="ri-user-star-line" style="color:var(--brand-primary);"></i> ${s.teacher}</div></td>
+            <td><button class="btn btn-secondary" style="padding:4px 12px; color:var(--error); border-color:transparent;" onclick="deleteSubject('${s._id}')"><i class="ri-delete-bin-line"></i></button></td>
+          </tr>`;
+        });
+      }
+      html += '</tbody>';
+      tbody.innerHTML = html;
+    }
+
+    function renderRooms() {
+      const tbody = getEl("roomTable");
+      if (!tbody) return;
+      tbody.innerHTML = rooms.map(r => `
+        <tr>
+          <td><div style="font-weight:700;">${r.name}</div></td>
+          <td><span class="badge ${r.type === 'lab' ? 'badge-lab' : 'badge-theory'}">${r.type.toUpperCase()} RESOURCE</span></td>
+          <td><span style="font-weight:600;">${r.capacity} Seats</span></td>
+          <td><button class="btn btn-secondary" style="padding:4px 12px; color:var(--error); border-color:transparent;" onclick="deleteRoom('${r._id}')"><i class="ri-delete-bin-line"></i></button></td>
+        </tr>
+      `).join('');
+
+      const rSel = getEl("subRoomSelect");
+      if (rSel) {
+        rSel.innerHTML = rooms.map(r => `<option value="${r.name}">${r.name} [Type: ${r.type.toUpperCase()}]</option>`).join('');
+      }
+    }
+
+    /* SUBSTITUTION HUB */
+    async function fetchLeaves() {
+      try {
+        const res = await fetch(`${API}/admin/pending-leaves`, { headers: authHeaders() });
+        const leaves = await res.json();
+        const lvBadge = getEl("lvBadge");
+        if (lvBadge) {
+          lvBadge.innerText = leaves.length;
+          lvBadge.style.display = leaves.length > 0 ? 'flex' : 'none';
+        }
+
+        const list = getEl("leaveList");
+        if (!list) return;
+
+        if (leaves.length === 0) {
+          list.innerHTML = `
+            <div style="text-align:center; padding:60px 0; background:var(--bg-soft); border-radius:var(--radius-lg);">
+                <i class="ri-calendar-check-line" style="font-size:3rem; color:var(--text-soft); margin-bottom:16px; display:block;"></i>
+                <p style="color:var(--text-muted);">Institutional personnel attendance is currently optimal.</p>
+            </div>`;
+          return;
+        }
+
+        list.innerHTML = leaves.map(lv => `
+           <div class="card" style="padding: 24px; border: 1px solid var(--border-base); margin-bottom: 20px;">
+             <div style="display:flex; justify-content:space-between; align-items:start;">
+               <div style="display:flex; gap:16px;">
+                 <div style="width:48px; height:48px; background:var(--brand-primary); color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                    <i class="ri-user-voice-line"></i>
+                 </div>
+                 <div>
+                   <h4 style="margin:0; font-size:1.1rem;">${lv.facultyName}</h4>
+                   <div style="font-size:0.9rem; color:var(--text-muted); margin-top:4px;">Requested Leave: <b style="color:var(--text-strong);">${lv.day}</b> | Period <b style="color:var(--text-strong);">${lv.period}</b></div>
+                   <div style="font-size:0.85rem; margin-top:12px; padding:12px; background:var(--bg-soft); border-radius:8px; border-left:4px solid var(--brand-primary);">
+                        <span style="font-weight:700; color:var(--text-soft); font-size:0.7rem; text-transform:uppercase; display:block; margin-bottom:4px;">Personnel Statement</span>
+                        ${lv.reason}
+                   </div>
+                 </div>
+               </div>
+               <div style="display:flex; flex-direction:column; gap:8px;">
+                 <button class="btn btn-primary" onclick="showSubstitutes('${lv._id}')" style="padding: 8px 16px; font-size: 0.85rem;">Find Routed Substitutes</button>
+                 <button class="btn btn-secondary" onclick="updateLeaveStatus('${lv._id}', 'denied')" style="padding: 8px 16px; font-size: 0.85rem; color: var(--error);">Deny Request</button>
+               </div>
+             </div>
+             <div id="subs-${lv._id}" style="margin-top:24px; display:none; border-top:1px dashed var(--border-base); padding-top:20px;">
+               <h5 style="margin-bottom:16px; font-size:0.75rem; text-transform:uppercase; color:var(--brand-primary); letter-spacing:0.05em;">AI Substitution Recommendations</h5>
+               <div id="sub-results-${lv._id}" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:12px;"></div>
+             </div>
+           </div>
+         `).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function showSubstitutes(leaveId) {
+      const container = getEl(`subs-${leaveId}`);
+      const results = getEl(`sub-results-${leaveId}`);
+      container.style.display = 'block';
+      results.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:20px;"><i class="ri-loader-4-line ri-spin"></i> Analyzing faculty availability...</div>`;
+
+      try {
+        const res = await fetch(`${API}/admin/substitute-suggestions/${leaveId}`, { headers: authHeaders() });
+        const suggestions = await res.json();
+
+        if (suggestions.length === 0) {
+          results.innerHTML = "<div style='grid-column: 1/-1; padding:20px; color:var(--error); font-weight:600; text-align:center;'>Conflict Alert: No available faculty found for this slot.</div>";
+          return;
+        }
+
+        results.innerHTML = suggestions.map(s => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px; background:var(--bg-soft); border-radius:12px; border:1px solid var(--border-base);">
+            <div>
+              <div style="font-weight:700; font-size:0.95rem;">${s.name}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Utilization: ${s.currentLoad}h / ${s.maxLoad}h</div>
+            </div>
+            <button class="btn btn-primary" style="padding:6px 12px; font-size:0.75rem;" onclick="approveWithSub('${leaveId}', '${s.name}')">Assign</button>
+          </div>
+        `).join('');
+      } catch (e) { results.innerHTML = "Sub-engine communication failure"; }
+    }
+
+    /* RED-ZONE THRESHOLD */
+    async function checkRedZone() {
+      const name = getEl("subTeacherSel").value;
+      const zone = getEl("redZone");
+      if (!name) { zone.style.display = 'none'; return; }
+
+      try {
+        const res = await fetch(`${API}/admin/faculty-load-check/${encodeURIComponent(name)}`, {
+          headers: authHeaders()
+        });
+        const { load, cap } = await res.json();
+
+        zone.style.display = 'block';
+        const ratio = load / cap;
+
+        if (ratio >= 1) {
+          zone.style.background = 'rgba(239, 68, 68, 0.1)';
+          zone.style.color = 'var(--error)';
+          zone.innerText = `FATAL OVERLOAD: ${load}/${cap}h`;
+        } else if (ratio >= 0.8) {
+          zone.style.background = 'rgba(245, 158, 11, 0.1)';
+          zone.style.color = '#d97706';
+          zone.innerText = `CAPACITY WARNING: ${load}/${cap}h`;
+        } else {
+          zone.style.background = 'rgba(16, 185, 129, 0.1)';
+          zone.style.color = 'var(--success)';
+          zone.innerText = `NOMINAL LOAD: ${load}/${cap}h`;
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    /* DEADLINES HUB */
+    async function fetchDeadlines() {
+      try {
+        const res = await fetch(`${API}/deadlines/${currentSem}`);
+        const list = await res.json();
+        const tbody = getEl("deadTable");
+        if (!tbody) return;
+
+        if (list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:48px; color:var(--text-soft);">No active academic constraints.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = list.map(d => {
+          const isExpired = new Date(d.dueDate) < new Date();
+          return `
+              <tr>
+                <td><div style="font-weight:700;">${d.title}</div></td>
+                <td><span class="nav-badge" style="position:static; background:var(--bg-soft); color:var(--text-strong);">${d.target || d.priority}</span></td>
+                <td><span style="font-family:monospace; font-weight:600;">${new Date(d.dueDate).toLocaleString()}</span></td>
+                <td><span class="badge" style="background:${isExpired ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)'}; color:${isExpired ? 'var(--error)' : 'var(--success)'};">${isExpired ? 'EXPIRED' : 'ACTIVE'}</span></td>
+                <td><button class="btn btn-secondary" style="padding:4px 12px; color:var(--error); border-color:transparent;" onclick="deleteDeadline('${id}')"><i class="ri-delete-bin-line"></i></button></td>
+              </tr>
+            `;
+        }).join('');
+      } catch (e) { console.error("Deadline engine sync failure", e); }
+    }
+
+    async function addDeadline() {
+      const title = getEl("deadTitle").value;
+      const date = getEl("deadDate").value;
+      const target = getEl("deadTarget").value;
+
+      if (!title || !date) { showToast("Missing institutional parameters", "error"); return; }
+
+      try {
+        const res = await fetch(`${API}/deadlines`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ title, dueDate: date, priority: target, sem: currentSem })
+        });
+        await res.json();
+        getEl("deadTitle").value = "";
+        getEl("deadDate").value = "";
+        fetchDeadlines();
+        showToast("Global deadline broadcasted.", "success");
+      } catch (e) { showToast("Broadcast failure", "error"); }
+    }
+
+    /* SCHEDULER ENGINE UI */
+    function renderTableHtml(data, variantIndex = null) {
+      const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+      let html = `<div class="table-wrapper"><table class="premium-table"><tr><th>OPERATIONAL DAY</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr>`;
+
+      DAYS.forEach(day => {
+        html += `<tr><td style="background:var(--bg-soft); font-weight:800; color:var(--brand-primary); letter-spacing:0.02em;">${day.toUpperCase()}</td>`;
+
+        for (let p = 1; p <= 6; p++) {
+          let s = data[day][p];
+          let cellContent = '<span style="color:var(--text-soft); font-size:0.8rem;">IDLE</span>';
+
+          const isDraggable = variantIndex !== null;
+          const dragAttrs = isDraggable ? `draggable="true" ondragstart="handleDragStart(event, ${variantIndex}, '${day}', ${p})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, ${variantIndex}, '${day}', ${p})"` : "";
+
+          if (s) {
+            cellContent = `
+              <div style="font-weight:800; font-size:0.9rem; color:var(--text-strong);">${s.name}</div>
+              <div style="font-size:0.75rem; color:var(--brand-primary); font-weight:600; margin-top:4px;">${s.teacher}</div>
+              <div style="font-size:0.7rem; color:var(--text-soft); font-weight:700; margin-top:4px; display:flex; align-items:center; gap:4px;"><i class="ri-building-line"></i> ${s.room}</div>
+            `;
+            if (s.labAssistant) cellContent += `<div style="font-size:0.65rem; color:var(--success); font-weight:700; margin-top:4px;">[ ${s.labAssistant} ]</div>`;
+          }
+          html += `<td class="${s && s.type === 'lab' ? 'is-lab' : ''} ${isDraggable ? 'draggable-slot' : ''}" ${dragAttrs} style="min-width:140px; vertical-align:top; transition:all 0.2s ease;">${cellContent}</td>`;
+        }
+        html += `</tr>`;
+      });
+      return html + `</table></div>`;
+    }
+
+    /* PDF EXPORT ENGINE */
+    function downloadPDF(index) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+
+      const data = windowGeneratedOptions[index];
+      if (!data) return;
+
+      doc.setFillColor(79, 70, 229); // Brand Primary
+      doc.rect(0, 0, 297, 40, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Institutional Schedule: Semester ${currentSem}`, 15, 20);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`planEDU Infrastructure V5.0 | Generated: ${new Date().toLocaleString()}`, 15, 30);
+
+      const tableBody = [];
+      const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+      DAYS.forEach(day => {
+        let row = [{ content: day.toUpperCase(), styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }];
+        for (let p = 1; p <= 6; p++) {
+          let s = data[day][p];
+          if (s) {
+            row.push(`${s.name}\nProf: ${s.teacher}${s.labAssistant ? '\nAsst: ' + s.labAssistant : ''}\nRoom: ${s.room}`);
+          } else {
+            row.push("--");
+          }
+        }
+        tableBody.push(row);
+      });
+
+      doc.autoTable({
+        startY: 50,
+        head: [['DAY', 'PERIOD 1', 'PERIOD 2', 'PERIOD 3', 'PERIOD 4', 'PERIOD 5', 'PERIOD 6']],
+        body: tableBody,
+        theme: 'grid',
+        headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontSize: 10, halign: 'center' },
+        styles: { fontSize: 8, cellPadding: 5, valign: 'middle' },
+        columnStyles: { 0: { halign: 'center' } }
+      });
+
+      doc.save(`planEDU_Semester_${currentSem}_Option_${index + 1}.pdf`);
+      showToast("High-resolution document exported", "success");
+    }
+
+    /* ANALYTICS ENGINE */
+    let analyticsChart;
+    function renderGlobalAnalytics() {
+      const ctx = getEl('globalChart').getContext('2d');
+      if (analyticsChart) analyticsChart.destroy();
+
+      const stats = { labs: 0, theory: 0, rooms: rooms.length, faculty: faculty.length };
+      subjects.forEach(s => s.type === 'lab' ? stats.labs++ : stats.theory++);
+
+      analyticsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Theory Subjects', 'Laboratory Units', 'Staff Members', 'Room Resources'],
+          datasets: [{
+            data: [stats.theory, stats.labs, stats.faculty, stats.rooms],
+            backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, grid: { display: false } } }
+        }
+      });
+
+      // Health Metric
+      const health = getEl('healthMetric');
+      const utilization = (subjects.length / (rooms.length * 30) * 100).toFixed(1);
+      health.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">RESOURCE EFFICIENCY</span>
+            <span style="font-size:0.85rem; font-weight:800; color:var(--brand-primary);">${utilization}%</span>
+        </div>
+        <div style="height:8px; background:var(--bg-soft); border-radius:4px; overflow:hidden;">
+            <div style="height:100%; width:${utilization}%; background:var(--brand-primary); transition:width 1s ease;"></div>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-soft); margin-top:16px;">System performing at optimal operational throughput for Quarter 1.</p>
+      `;
+    }
+
+    /* MAINTENANCE HUB */
+    async function backupSystem() {
+      try {
+        const res = await fetch(`${API}/admin/backup`, { headers: authHeaders() });
+        const data = await res.json();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `planEDU_Snapshot_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        showToast("Master backup generated.", "success");
+      } catch (e) { showToast("Persistence failure", "error"); }
+    }
+
+    async function triggerRestore() {
+      const fileInput = getEl('restoreFile');
+      if (!fileInput.files[0]) { showToast("Select snapshot for flash sync", "error"); return; }
+      if (!confirm("System Flash: Overwrite institutional data?")) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const res = await fetch(`${API}/admin/restore`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: e.target.result
+          });
+          if (res.ok) {
+            showToast("System flashed. Initializing reboot...", "success");
+            setTimeout(() => location.reload(), 2000);
+          }
+        } catch (err) { showToast("Flash synchronization failed", "error"); }
+      };
+      reader.readAsText(fileInput.files[0]);
+    }
+
+    /* DASHBOARD REFRESH */
+    async function refreshDashboard() {
+      await Promise.all([
+        fetchLogs(),
+        updateDashboardStats(),
+        refreshDashboardCharts()
+      ]);
+      showToast("Command Center Synchronized", "success");
+    }
+
+  </script>
+</body>
+
+</html>

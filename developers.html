@@ -1,0 +1,351 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Developers, planEDU</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #0f172a;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --light-bg: #f1f5f9;
+      --card-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, sans-serif;
+      background: linear-gradient(135deg, #e0f2fe, #f8fafc);
+      color: var(--text-main);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* NAVIGATION */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 8%;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      animation: slideDown 0.6s ease;
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 600;
+      margin-left: 30px;
+      position: relative;
+      transition: 0.3s;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -6px;
+      width: 0%;
+      height: 2px;
+      background: var(--primary);
+      transition: 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    /* SECTION */
+    .creators {
+      padding: 100px 8%;
+      text-align: center;
+      animation: fadeIn 1s ease;
+    }
+
+    .creators h2 {
+      font-size: 2.4rem;
+      margin-bottom: 60px;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    /* TEAM GRID */
+    .team-grid {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 50px;
+    }
+
+    .creator-card {
+      width: 230px;
+      background: var(--card-bg);
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      transition: 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .creator-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .creator-img {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid var(--primary);
+      margin: 0 auto 20px;
+      transition: 0.4s;
+    }
+
+    .creator-card:hover .creator-img {
+      transform: scale(1.08);
+    }
+
+    .creator-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .creator-info h4 {
+      font-size: 1.2rem;
+      color: var(--secondary);
+      margin-bottom: 5px;
+    }
+
+    .creator-info span {
+      display: block;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .creator-info p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--secondary);
+      color: #f1f5f9;
+      padding: 70px 8% 40px;
+      margin-top: 100px;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-col h3,
+    .footer-col h4 {
+      color: white;
+      margin-bottom: 15px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col ul li,
+    .footer-col p {
+      color: #94a3b8;
+      margin-bottom: 10px;
+      transition: 0.3s;
+    }
+
+    .footer-col ul li:hover {
+      color: white;
+    }
+
+    .copyright {
+      text-align: center;
+      padding-top: 30px;
+      border-top: 1px solid #1e293b;
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .team-grid {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <nav>
+    <a href="index.html" class="logo">planEDU</a>
+    <div class="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="developers.html">Developers</a>
+      <a href="login.html">Login</a>
+    </div>
+  </nav>
+
+  <section class="creators">
+    <h2>The Developers of planEDU</h2>
+
+    <div class="team-grid">
+      <div class="creator-card">
+        <div class="creator-img">
+          <img src="adi.jpeg" alt="Adithyan">
+        </div>
+        <div class="creator-info">
+          <h4>Adithyan V A</h4>
+          <span>Lead Systems Architect</span>
+          <p>Project Head. Driving the core vision, engine logic, and overall system architecture.</p>
+        </div>
+      </div>
+
+      <div class="creator-card">
+        <div class="creator-img">
+          <img src="prabhav.jpeg" alt="Prabhav">
+        </div>
+        <div class="creator-info">
+          <h4>Prabhav A Asok</h4>
+          <span>Frontend Architect & UI Lead</span>
+          <p>Architecting the user experience, responsive layouts, and modern visual design.</p>
+        </div>
+      </div>
+
+      <div class="creator-card">
+        <div class="creator-img">
+          <img src="alvin.jpeg" alt="Alvin">
+        </div>
+        <div class="creator-info">
+          <h4>Alvin T A</h4>
+          <span>Core Backend & Database Lead</span>
+          <p>Designing robust server architecture, database schemas, and data persistence models.</p>
+        </div>
+      </div>
+
+      <div class="creator-card">
+        <div class="creator-img">
+          <img src="devu.png" alt="Devananda">
+        </div>
+        <div class="creator-info">
+          <h4>Devananda P</h4>
+          <span>Systems Deployment Specialist</span>
+          <p>Supporting deployment workflows, security protocols, and server maintenance.</p>
+        </div>
+      </div>
+
+      <div class="creator-card">
+        <div class="creator-img">
+          <img src="afrin.jpeg" alt="Afrin">
+        </div>
+        <div class="creator-info">
+          <h4>Afrin Nisaj</h4>
+          <span>Technical Infrastructure Support</span>
+          <p>Providing essential support for system optimization and technical documentation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+
+      <div class="footer-col">
+        <h3>planEDU</h3>
+        <p>Simplifying student life through better time management.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li>Help Center</li>
+          <li>Privacy Policy</li>
+          <li>Terms of Service</li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <p>Phone 9947596994</p>
+        <p>Email support@planedu.com</p>
+      </div>
+
+    </div>
+
+    <div class="copyright">
+      © 2026 planEDU
+    </div>
+  </footer>
+
+</body>
+
+</html>

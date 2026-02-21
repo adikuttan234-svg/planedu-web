@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms & Conditions – planEDU</title>
+<style>
+/* ===== MODAL STYLES ===== */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: #f8fafc;
+    color: #1e293b;
+}
+
+/* Modal overlay */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow-y: auto;
+    background-color: rgba(0,0,0,0.7);
+    padding: 40px 20px;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* Modal content */
+.modal-content {
+    background: #ffffff;
+    color: #1e293b;
+    margin: auto;
+    padding: 30px 40px;
+    border-radius: 12px;
+    max-width: 900px;
+    position: relative;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* Show animation */
+.modal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Close button */
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #1e293b;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-btn:hover {
+    color: #3b82f6;
+}
+
+/* Scrollable content */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.modal-body h2 {
+    margin-top: 0;
+    font-size: 28px;
+    color: #0f172a;
+}
+
+.modal-body h3 {
+    margin-top: 25px;
+    color: #1e293b;
+}
+
+.modal-body p, .modal-body li {
+    margin-bottom: 15px;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.modal-body ul {
+    padding-left: 20px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-content { padding: 20px 25px; }
+    .modal-body h2 { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Modal Structure -->
+<div id="termsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div class="modal-body">
+            <h2>Terms & Conditions – planEDU</h2>
+            <p>Welcome to planEDU, a smart timetable management platform. By using this website, you agree to the following terms and conditions. Please read them carefully.</p>
+
+            <h3>1. Acceptance of Terms</h3>
+            <p>By accessing or using planEDU, you acknowledge that you have read, understood, and agree to be bound by these Terms & Conditions.</p>
+
+            <h3>2. Use of Service</h3>
+            <ul>
+                <li>planEDU allows students, faculty, and administrators to create, manage, and share academic timetables.</li>
+                <li>Users must provide accurate and truthful information when registering.</li>
+                <li>Users are responsible for maintaining the confidentiality of their login credentials.</li>
+            </ul>
+
+            <h3>3. Account Security</h3>
+            <p>Users are responsible for any activity occurring under their account. planEDU is not liable for unauthorized access due to weak password practices.</p>
+
+            <h3>4. Intellectual Property</h3>
+            <p>All content, design, software, and trademarks displayed on planEDU are the property of planEDU and protected by copyright laws. Users may not reproduce, distribute, or exploit any content without written permission.</p>
+
+            <h3>5. Data Privacy</h3>
+            <ul>
+                <li>planEDU collects personal data necessary for service functionality (name, email, role, timetable data).</li>
+                <li>We will not share your personal information with third parties without your consent, except as required by law.</li>
+                <li>Users can request account deletion at any time, which will remove all their data from our servers.</li>
+            </ul>
+
+            <h3>6. Restrictions</h3>
+            <p>Users must not use planEDU to:</p>
+            <ul>
+                <li>Upload or distribute harmful or illegal content.</li>
+                <li>Attempt to hack, disrupt, or gain unauthorized access to the system.</li>
+                <li>Violate any applicable laws or regulations.</li>
+            </ul>
+
+            <h3>7. Limitation of Liability</h3>
+            <p>planEDU provides its services "as is" without warranties of any kind. We are not responsible for data loss, downtime, or incorrect timetable generation. Users use the platform at their own risk.</p>
+
+            <h3>8. Modifications to Terms</h3>
+            <p>planEDU may update these terms at any time. Users are encouraged to review the Terms & Conditions periodically. Continued use after changes constitutes acceptance.</p>
+
+            <h3>9. Termination</h3>
+            <p>planEDU reserves the right to suspend or terminate accounts violating these terms, without prior notice.</p>
+
+            <h3>10. Contact Us</h3>
+            <p>If you have questions about these terms, please contact support@planedu.com.</p>
+
+            <p>By using planEDU, you confirm that you have read, understood, and accepted these Terms & Conditions.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal() {
+    const modal = document.getElementById("termsModal");
+    modal.style.display = "block";
+    setTimeout(() => modal.classList.add("show"), 10);
+}
+
+function closeModal() {
+    const modal = document.getElementById("termsModal");
+    modal.classList.remove("show");
+    setTimeout(() => modal.style.display = "none", 400);
+}
+
+// Optional: close modal when clicking outside content
+window.onclick = function(event) {
+    const modal = document.getElementById("termsModal");
+    if (event.target === modal) closeModal();
+}
+</script>
+
+</body>
+</html>

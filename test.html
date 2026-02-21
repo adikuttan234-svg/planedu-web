@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planedu Admin | V5.0 Conflict-Proof</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --gold: #f5c542;
+  --dark-bg: #0a0a0a;
+  --card-bg: rgba(20, 20, 20, 0.95);
+  --border: #2a2a2a;
+  --text: #e0e0e0;
+  --sidebar-width: 260px;
+  --danger: #ff4757;
+  --success: #2ed573;
+  --lab-bg: #1e3a8a; 
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0; font-family: "Inter", "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top right, #1a1a1a 0%, #000 70%);
+  color: var(--text); height: 100vh; display: flex; overflow: hidden;
+}
+
+/* OVERLAYS */
+#auth, #sem-picker-overlay {
+  position: fixed; inset: 0; background: #000; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+#sem-picker-overlay { background: rgba(0,0,0,0.95); z-index: 9998; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-width); min-width: var(--sidebar-width);
+  background: rgba(5, 5, 5, 0.95); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 30px 20px; z-index: 100;
+}
+.sidebar-header { margin-bottom: 40px; text-align: center; }
+.sidebar button {
+  width: 100%; padding: 14px 18px; margin-bottom: 12px;
+  background: transparent; border: 1px solid transparent; color: #888;
+  border-radius: 12px; cursor: pointer; text-align: left; transition: 0.2s;
+}
+.sidebar button:hover { background: rgba(245, 197, 66, 0.1); color: var(--gold); }
+.sidebar button.active-btn { background: var(--gold); color: #000; font-weight: 700; }
+
+/* MAIN CONTENT */
+.main { flex: 1; overflow-y: auto; padding: 40px; }
+.sem-striker {
+    background: var(--gold); color: #000; padding: 12px 20px;
+    border-radius: 12px; margin-bottom: 30px; display: flex;
+    justify-content: space-between; align-items: center; font-weight: 800;
+}
+
+.section { display: none; animation: fadeIn 0.3s ease-out; max-width: 1200px; margin: 0 auto; }
+.section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 30px; margin-bottom: 30px; }
+.grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 25px; }
+
+input, select { width: 100%; padding: 12px; background: #111; border: 1px solid var(--border); color: #fff; border-radius: 10px; }
+button.primary { background: var(--gold); color: #000; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+button.secondary { background: transparent; color: var(--gold); border: 1px solid var(--gold); padding: 12px 24px; border-radius: 10px; cursor: pointer; }
+
+/* TABLES */
+.table-container { overflow-x: auto; margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed;}
+th { text-align: left; padding: 12px; color: var(--gold); border-bottom: 2px solid var(--border); width: 14%;}
+td { padding: 12px; border-bottom: 1px solid #1a1a1a; vertical-align: top; overflow: hidden;}
+
+.is-lab { background: var(--lab-bg) !important; border-left: 3px solid var(--gold); }
+.badge { background: var(--danger); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; float: right; }
+.btn-del { background: #331111; color: #ff6b6b; border: 1px solid #552222; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+
+/* COLUMNAR VARIANT LAYOUT */
+.variant-grid { display: flex; flex-direction: column; gap: 40px; }
+.variant-card { background: #111; border: 1px solid var(--border); border-radius: 15px; padding: 25px;}
+.selected-variant { border: 2px solid var(--success) !important; box-shadow: 0 0 15px rgba(46, 213, 115, 0.2); }
+
+@media print {
+    body { background: white; color: black; }
+    .sidebar, .sem-striker, button, #auth, #sem-picker-overlay { display: none !important; }
+    .main { padding: 0; }
+    .variant-card { border: none; page-break-after: always; display: none; }
+    .variant-card.selected-variant { display: block !important; }
+    th, td { border: 1px solid #000 !important; color: black !important; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="auth">
+  <div class="box" style="width: 350px; text-align: center;">
+    <h2 style="color: var(--gold);">Admin Access</h2>
+    <input type="password" id="adminPass" placeholder="Password (admin123)" style="text-align: center; margin-bottom: 20px;">
+    <button class="primary" style="width: 100%" onclick="login()">Enter Dashboard</button>
+  </div>
+</div>
+
+<div id="sem-picker-overlay" style="display:none;">
+    <div class="box" style="text-align: center; width: 400px;">
+        <h3 style="color: var(--gold);">Select Semester</h3>
+        <select id="initialSem" style="margin-bottom: 20px;">
+            <option value="1">Semester 1</option><option value="2">Semester 2</option>
+            <option value="3">Semester 3</option><option value="4">Semester 4</option>
+            <option value="5">Semester 5</option><option value="6">Semester 6</option>
+        </select>
+        <button class="primary" style="width:100%" onclick="confirmSem()">Initialize Engine</button>
+    </div>
+</div>
+
+<div class="sidebar">
+  <div class="sidebar-header"><span style="font-weight: 800; color: var(--gold); font-size: 1.5rem;">PLANEDU</span></div>
+  <button onclick="showSection('faculty')" id="btn-faculty">Faculty Management</button>
+  <button onclick="showSection('subjects')" id="btn-subjects">Subject Management</button>
+  <button onclick="showSection('workload')" id="btn-workload">Work Load</button>
+  <button onclick="showSection('approvals')" id="btn-approvals">Approvals <span id="apBadge" class="badge">0</span></button>
+  <button onclick="showSection('notifications')" id="btn-notifications">Logs <span id="noBadge" class="badge">0</span></button>
+  <button onclick="showSection('timetable')" id="btn-timetable">Timetable Engine</button>
+  <button onclick="location.reload()" style="margin-top: auto; color: var(--danger);">Reset / Change Sem</button>
+</div>
+
+<div class="main">
+  <div class="sem-striker">
+    <span>SYSTEM ACTIVE: SEMESTER <span id="displaySem">-</span></span>
+    <span style="font-size: 12px; opacity: 0.7;">V5.0 PRO Engine</span>
+  </div>
+
+  <div id="faculty" class="section">
+    <div class="box">
+      <h3>Faculty Registration</h3>
+      <div class="grid-inputs">
+        <input id="facName" placeholder="Full Name">
+        <input id="facDept" placeholder="Department">
+        <input id="facHours" type="number" placeholder="Max Weekly Hrs">
+      </div>
+      <button class="primary" onclick="addFaculty()">Register Faculty</button>
+      <div class="table-container"><table><tbody id="facultyTable"></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="subjects" class="section">
+    <div class="box">
+      <h3>Subject Setup</h3>
+      <div class="grid-inputs">
+        <input id="subName" placeholder="Subject Name">
+        <select id="subType"><option value="theory">Theory</option><option value="lab">Lab (3hr Block)</option></select>
+        <input id="subWeekly" type="number" placeholder="Total Weekly Hrs">
+        <select id="subTeacherSel"></select>
+        <input id="subRoom" placeholder="Room #">
+      </div>
+      <button class="primary" onclick="addSubject()">Assign Subject</button>
+      <div class="table-container"><table><tbody id="subjectTable"></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="workload" class="section">
+    <div class="box"><h3>Workload Analysis</h3><div style="height: 350px;"><canvas id="workChart"></canvas></div></div>
+  </div>
+
+  <div id="approvals" class="section">
+    <div class="box"><h3>Pending Requests</h3><div class="table-container"><table><tbody id="approvalTable"></tbody></table></div></div>
+  </div>
+
+  <div id="notifications" class="section">
+    <div class="box"><h3>System Logs</h3><div id="notifyBox"></div></div>
+  </div>
+
+  <div id="timetable" class="section">
+    <div class="box" style="text-align: center;">
+      <h3>Conflict-Proof Timetable Engine</h3>
+      <button class="primary" onclick="generateThreeOptions()">Generate 3 Vertical Options</button>
+    </div>
+    <div id="variant-display" class="variant-grid"></div>
+  </div>
+</div>
+
+<script>
+let subjects = JSON.parse(localStorage.getItem('subjects')) || [];
+let faculty = JSON.parse(localStorage.getItem('faculty')) || [];
+let pending = JSON.parse(localStorage.getItem('pending')) || [];
+let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+let finalizedSchedules = JSON.parse(localStorage.getItem('finalizedSchedules')) || {}; 
+let currentSem = null;
+
+function login() {
+  if (adminPass.value === "admin123") {
+      auth.style.display = 'none';
+      document.getElementById('sem-picker-overlay').style.display = 'flex';
+  } else alert("Invalid Password");
+}
+
+function confirmSem() {
+    currentSem = initialSem.value;
+    document.getElementById('sem-picker-overlay').style.display = 'none';
+    document.getElementById('displaySem').innerText = currentSem;
+    showSection('faculty'); renderFaculty(); renderSubjects(); updateUI();
+}
+
+function showSection(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".sidebar button").forEach(b => b.classList.remove("active-btn"));
+  document.getElementById(id).classList.add("active");
+  if(document.getElementById('btn-' + id)) document.getElementById('btn-' + id).classList.add("active-btn");
+  if(id === 'workload') setTimeout(renderChart, 100);
+}
+
+function saveData() {
+  localStorage.setItem('subjects', JSON.stringify(subjects));
+  localStorage.setItem('faculty', JSON.stringify(faculty));
+  localStorage.setItem('pending', JSON.stringify(pending));
+  localStorage.setItem('notifications', JSON.stringify(notifications));
+  localStorage.setItem('finalizedSchedules', JSON.stringify(finalizedSchedules));
+}
+
+function addFaculty() {
+  if(!facName.value) return;
+  faculty.push({ name: facName.value, dept: facDept.value, hours: facHours.value });
+  facName.value = ""; saveData(); renderFaculty();
+}
+
+function renderFaculty() {
+  let html = `<tr><th>Name</th><th>Dept</th><th>Limit</th><th>Action</th></tr>`;
+  faculty.forEach((f, i) => {
+    html += `<tr><td>${f.name}</td><td>${f.dept}</td><td>${f.hours}h</td>
+    <td><button class="btn-del" onclick="faculty.splice(${i},1);saveData();renderFaculty()">Del</button></td></tr>`;
+  });
+  facultyTable.innerHTML = html;
+  subTeacherSel.innerHTML = faculty.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+}
+
+function addSubject() {
+  if(!subName.value) return;
+  subjects.push({ name: subName.value, type: subType.value, sem: currentSem, weeklyHrs: subWeekly.value, room: subRoom.value || 'N/A', teacher: subTeacherSel.value });
+  subName.value = ""; saveData(); renderSubjects();
+}
+
+function renderSubjects() {
+  let html = `<tr><th>Subject</th><th>Type</th><th>Hrs/Wk</th><th>Faculty</th><th>Action</th></tr>`;
+  subjects.filter(s => s.sem == currentSem).forEach((s) => {
+    const origIdx = subjects.indexOf(s);
+    html += `<tr><td>${s.name}</td><td>${s.type.toUpperCase()}</td><td>${s.weeklyHrs}h</td><td>${s.teacher}</td>
+    <td><button class="btn-del" onclick="subjects.splice(${origIdx},1);saveData();renderSubjects()">Del</button></td></tr>`;
+  });
+  subjectTable.innerHTML = html;
+}
+
+// --- CORE ENGINE WITH CROSS-SEMESTER CONFLICT CHECK ---
+function isTeacherBusy(teacher, day, period) {
+    for (let sem in finalizedSchedules) {
+        if (sem == currentSem) continue; // Ignore current working sem
+        let daySched = finalizedSchedules[sem][day];
+        if (daySched && daySched[period] && daySched[period].teacher === teacher) return true;
+    }
+    return false;
+}
+
+function generateThreeOptions() {
+    const container = document.getElementById('variant-display');
+    container.innerHTML = "";
+    for(let i=1; i<=3; i++) {
+        const tableData = createScheduleLogic();
+        const div = document.createElement('div');
+        div.className = "variant-card";
+        div.id = `variant-${i}`;
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="color:var(--gold); margin:0;">Option ${i}</h3>
+                <button class="primary" onclick="finalizeOption(${i}, ${JSON.stringify(tableData).replace(/"/g, '&quot;')})">Finalize & Print</button>
+            </div>
+            ${renderTableHtml(tableData)}`;
+        container.appendChild(div);
+    }
+}
+
+function finalizeOption(id, data) {
+    finalizedSchedules[currentSem] = data;
+    saveData();
+    document.querySelectorAll('.variant-card').forEach(c => c.classList.remove('selected-variant'));
+    document.getElementById(`variant-${id}`).classList.add('selected-variant');
+    notifications.unshift(`✅ Finalized Semester ${currentSem} using Option ${id}. Global conflict check updated.`);
+    updateUI();
+    window.print();
+}
+
+function createScheduleLogic() {
+    const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    const semSubjs = subjects.filter(s => s.sem == currentSem);
+    let hourTracking = {};
+    semSubjs.forEach(s => hourTracking[s.name] = parseInt(s.weeklyHrs));
+
+    let schedule = { Monday: {}, Tuesday: {}, Wednesday: {}, Thursday: {}, Friday: {} };
+
+    DAYS.forEach(day => {
+        let subjectsToday = [];
+        
+        // 1. LABS (P1-3 or P4-6)
+        let labs = semSubjs.filter(s => s.type === 'lab' && hourTracking[s.name] >= 3);
+        if(labs.length > 0) {
+            let start = Math.random() > 0.5 ? 1 : 4;
+            let lab = labs[Math.floor(Math.random() * labs.length)];
+            // Check if teacher is free for ALL 3 hours
+            let conflict = false;
+            for(let p=start; p<start+3; p++) if(isTeacherBusy(lab.teacher, day, p)) conflict = true;
+            
+            if(!conflict) {
+                for(let p=start; p<start+3; p++) { schedule[day][p] = lab; hourTracking[lab.name]--; }
+            }
+        }
+
+        // 2. THEORY
+        for(let p=1; p<=6; p++) {
+            if(schedule[day][p]) continue;
+            let theory = semSubjs.filter(s => 
+                s.type === 'theory' && hourTracking[s.name] > 0 && 
+                !subjectsToday.includes(s.name) && 
+                !isTeacherBusy(s.teacher, day, p)
+            );
+            if(theory.length > 0) {
+                let s = theory[Math.floor(Math.random() * theory.length)];
+                schedule[day][p] = s; hourTracking[s.name]--; subjectsToday.push(s.name);
+            }
+        }
+    });
+    return schedule;
+}
+
+function renderTableHtml(data) {
+    const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    let html = `<div class="table-container"><table><tr><th>Day</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr>`;
+    DAYS.forEach(day => {
+        html += `<tr><td><strong>${day}</strong></td>`;
+        for(let p=1; p<=6; p++) {
+            let s = data[day][p];
+            html += `<td class="${s && s.type==='lab' ? 'is-lab' : ''}">${s ? `<b>${s.name}</b><br>${s.teacher}<br>R:${s.room}` : '--'}</td>`;
+        }
+        html += `</tr>`;
+    });
+    return html + `</table></div>`;
+}
+
+function updateUI() {
+  apBadge.textContent = pending.length;
+  noBadge.textContent = notifications.length;
+  notifyBox.innerHTML = notifications.map(n => `<div class="box" style="padding:15px; border-left:4px solid var(--gold)">${n}</div>`).join('');
+}
+
+let workChartInstance;
+function renderChart() {
+  const ctx = document.getElementById("workChart").getContext('2d');
+  if(workChartInstance) workChartInstance.destroy();
+  workChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: faculty.map(f => f.name),
+      datasets: [{ label: 'Workload Cap', data: faculty.map(f => f.hours), backgroundColor: '#f5c542' }]
+    },
+    options: { maintainAspectRatio: false }
+  });
+}
+</script>
+</body>
+</html>

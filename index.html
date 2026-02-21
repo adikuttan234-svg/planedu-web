@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+    <title>planEDU | Intelligent Academic Ecosystem</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+
+    <style>
+        .hero-section {
+            padding: 160px 0 120px;
+            background: radial-gradient(circle at 70% 30%, rgba(79, 70, 229, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 30% 70%, rgba(14, 165, 233, 0.08) 0%, transparent 50%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border-base);
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--brand-primary);
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            letter-spacing: -0.04em;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--text-strong) 60%, var(--brand-primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        .floating-cards {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40%;
+            display: none;
+        }
+
+        @media (min-width: 1024px) {
+            .floating-cards {
+                display: block;
+            }
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 80px;
+        }
+
+        .feature-card {
+            padding: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-base);
+            border-radius: var(--radius-lg);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--brand-primary-light);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--bg-soft);
+            color: var(--brand-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+
+        .stats-bar {
+            padding: 60px 0;
+            border-top: 1px solid var(--border-base);
+            border-bottom: 1px solid var(--border-base);
+            background: var(--bg-soft);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--brand-primary);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        #theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid var(--border-base);
+            background: var(--bg-card);
+            color: var(--text-main);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav-standard">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div
+                style="width: 40px; height: 40px; background: var(--brand-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.2rem;">
+                P</div>
+            <span
+                style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-strong);">planEDU</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 32px;">
+            <div style="display: flex; gap: 24px;" class="nav-links">
+                <a href="#features" style="font-weight: 600; font-size: 0.95rem;">Ecosystem</a>
+                <a href="developers.html" style="font-weight: 600; font-size: 0.95rem;">Engineers</a>
+            </div>
+            <div style="height: 24px; width: 1px; background: var(--border-base);"></div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button id="theme-toggle" onclick="toggleTheme()">
+                    <i class="ri-moon-line"></i>
+                </button>
+                <a href="login.html" class="btn btn-secondary">Admin Access</a>
+                <a href="login.html" class="btn btn-primary shadow-lg">Enter Portal</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-section">
+            <div class="container">
+                <div class="animate-fade-up">
+                    <div class="hero-badge">
+                        <i class="ri-shield-check-fill"></i>
+                        V5.0 Conflict-Proof Architecture Active
+                    </div>
+                    <h1 class="hero-title">The Master Mind of <br> Campus Logistics.</h1>
+                    <p class="hero-description">
+                        Institutions don't just schedule; they orchestrate. planEDU is the enterprise-grade engine for
+                        faculty synchronization and smart resource allocation.
+                    </p>
+                    <div style="display: flex; gap: 16px;">
+                        <a href="login.html" class="btn btn-primary"
+                            style="padding: 16px 32px; font-size: 1.1rem; border-radius: 12px;">Get Started Free</a>
+                        <a href="#features" class="btn btn-secondary"
+                            style="padding: 16px 32px; font-size: 1.1rem; border-radius: 12px;">View Infrastructure</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-bar">
+            <div class="container stats-grid">
+                <div>
+                    <span class="stat-value">99.9%</span>
+                    <span class="stat-label">Conflict Resolution</span>
+                </div>
+                <div>
+                    <span class="stat-value">Instant</span>
+                    <span class="stat-label">Generation Speed</span>
+                </div>
+                <div>
+                    <span class="stat-value">256-bit</span>
+                    <span class="stat-label">Data Encryption</span>
+                </div>
+                <div>
+                    <span class="stat-value">Adaptive</span>
+                    <span class="stat-label">Multi-role UI</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" style="padding: 120px 0;">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 64px;">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 16px;">Institutional Core Features</h2>
+                    <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Everything you need to manage
+                        a modern academic infrastructure at scale.</p>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="ri-cpu-line"></i></div>
+                        <h3>AI Scheduling Engine</h3>
+                        <p style="color: var(--text-muted); margin-top: 12px;">Proprietary algorithms that handle
+                            complex faculty preferences, room capacities, and lab requirements simultaneously.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="ri-layout-grid-line"></i></div>
+                        <h3>Interactive Workspace</h3>
+                        <p style="color: var(--text-muted); margin-top: 12px;">Drag-and-drop visual editor with
+                            real-time conflict highlighting and smart-swap suggestions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="ri-user-voice-line"></i></div>
+                        <h3>Smart Substitution</h3>
+                        <p style="color: var(--text-muted); margin-top: 12px;">Automated leave management system that
+                            finds the most qualified available substitute in seconds.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="ri-bar-chart-grouped-line"></i></div>
+                        <h3>Visual Analytics</h3>
+                        <p style="color: var(--text-muted); margin-top: 12px;">Comprehensive dashboards for monitoring
+                            room utilization, faculty workload, and department efficiency.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="ri-smartphone-line"></i></div>
+                        <h3>Cross-Platform</h3>
+                        <p style="color: var(--text-muted); margin-top: 12px;">Seamless experience across desktop,
+                            tablet, and mobile with real-time push notifications.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="ri-database-2-line"></i></div>
+                        <h3>Backup & Restore</h3>
+                        <p style="color: var(--text-muted); margin-top: 12px;">Enterprise-grade snapshot system to
+                            safeguard institutional data with one-click restoration.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="background: var(--bg-soft); padding: 80px 0 40px; border-top: 1px solid var(--border-base);">
+        <div class="container">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 48px; margin-bottom: 64px;">
+                <div>
+                    <h4 style="margin-bottom: 24px;">planEDU</h4>
+                    <p style="color: var(--text-muted);">Redefining academic resource management through intelligent
+                        design and performance-first architecture.</p>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 24px;">Navigation</h4>
+                    <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px;">
+                        <li><a href="#" style="color: var(--text-muted);">Features</a></li>
+                        <li><a href="#" style="color: var(--text-muted);">Developers</a></li>
+                        <li><a href="#" style="color: var(--text-muted);">Documentation</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 24px;">Support</h4>
+                    <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px;">
+                        <li><a href="#" style="color: var(--text-muted);">Help Center</a></li>
+                        <li><a href="#" style="color: var(--text-muted);">Privacy Policy</a></li>
+                        <li><a href="#" style="color: var(--text-muted);">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 24px;">Contact</h4>
+                    <p style="color: var(--text-muted); margin-bottom: 12px;">support@planedu.com</p>
+                    <div style="display: flex; gap: 16px; font-size: 1.2rem;">
+                        <a href="#"><i class="ri-twitter-x-fill"></i></a>
+                        <a href="#"><i class="ri-linkedin-box-fill"></i></a>
+                        <a href="#"><i class="ri-github-fill"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div
+                style="text-align: center; color: var(--text-soft); padding-top: 40px; border-top: 1px solid var(--border-base); font-size: 0.9rem;">
+                &copy; 2026 planEDU Infrastructure. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('#theme-toggle i');
+            if (theme === 'dark') {
+                icon.className = 'ri-sun-line';
+            } else {
+                icon.className = 'ri-moon-line';
+            }
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker: Registered'))
+                    .catch(err => console.log('Service Worker: Error', err));
+            });
+        }
+    </script>
+</body>
+
+</html>

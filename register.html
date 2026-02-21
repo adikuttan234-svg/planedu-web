@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Institutional Registration | planEDU</title>
+
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      background: var(--bg-soft);
+      background-image: radial-gradient(circle at 100% 0%, rgba(79, 70, 229, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 0% 100%, rgba(14, 165, 233, 0.05) 0%, transparent 50%);
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 520px;
+      padding: 48px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-base);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .auth-logo {
+      width: 56px;
+      height: 56px;
+      background: var(--brand-primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0 auto 24px;
+    }
+
+    .auth-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      margin-bottom: 8px;
+    }
+
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    .terms-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 32px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .terms-box input {
+      margin-top: 4px;
+    }
+
+    .terms-link {
+      color: var(--brand-primary);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .footer-link {
+      text-align: center;
+      margin-top: 32px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .footer-link a {
+      color: var(--brand-primary);
+      font-weight: 700;
+    }
+
+    /* Modal Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 40px;
+      border-radius: var(--radius-lg);
+      position: relative;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-soft);
+    }
+
+    @media (max-width: 500px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-group.full-width {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="auth-card animate-fade-up">
+    <div class="auth-header">
+      <div class="auth-logo">P</div>
+      <h1 class="auth-title">Create Account</h1>
+      <p class="auth-subtitle">Join the intelligent academic ecosystem</p>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">First Name</label>
+        <input id="firstname" type="text" class="input-field" placeholder="John">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Last Name</label>
+        <input id="lastname" type="text" class="input-field" placeholder="Doe">
+      </div>
+      <div class="form-group full-width">
+        <label class="form-label">Institutional Email</label>
+        <input id="email" type="email" class="input-field" placeholder="j.doe@institution.edu">
+      </div>
+      <div class="form-group full-width">
+        <label class="form-label">Access Level</label>
+        <select id="role" class="input-field">
+          <option value="" disabled selected>Select your role...</option>
+          <option value="FACULTY">Faculty Member</option>
+          <option value="STUDENT">Student Researcher</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Security Password</label>
+        <input id="password" type="password" class="input-field" placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input id="confirmPassword" type="password" class="input-field" placeholder="••••••••">
+      </div>
+    </div>
+
+    <div class="terms-box">
+      <input type="checkbox" id="termsCheck">
+      <label for="termsCheck">
+        I acknowledge that I have read and agree to the
+        <span class="terms-link" onclick="openModal()">Terms of Service</span> and
+        <span class="terms-link" onclick="openModal()">Institutional Privacy Protocol</span>.
+      </label>
+    </div>
+
+    <button id="registerBtn" onclick="register()" class="btn btn-primary"
+      style="width: 100%; padding: 14px; font-size: 1rem;" disabled>
+      Initialize Account
+      <i class="ri-user-add-line"></i>
+    </button>
+
+    <div id="msgBox" style="margin-top:20px; text-align:center; font-size:0.9rem; font-weight:600; display:none;"></div>
+
+    <div class="footer-link">
+      Already registered? <a href="login.html">Sign in here</a>
+    </div>
+  </div>
+
+  <!-- Terms Modal -->
+  <div id="termsModal" class="modal">
+    <div class="modal-content animate-fade-up">
+      <i class="ri-close-line close-modal" onclick="closeModal()"></i>
+      <h2 style="margin-bottom: 24px;">Terms & Privacy Protocol</h2>
+      <div style="color: var(--text-muted); line-height: 1.8;">
+        <p style="margin-bottom: 16px;">Welcome to planEDU. Our platform is designed to provide secure, intelligent
+          scheduling for academic institutions. By initializing your account, you agree to:</p>
+        <ul style="padding-left: 20px; margin-bottom: 24px;">
+          <li>Maintain the confidentiality of your institutional credentials.</li>
+          <li>Provide accurate professional/academic information.</li>
+          <li>Use the platform exclusively for institutional scheduling and resource management.</li>
+          <li>Adhere to your institution's digital data policies.</li>
+        </ul>
+        <p>We use 256-bit encryption for all stored data and never share institutional metrics with third parties.</p>
+      </div>
+      <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 32px; width: 100%;">I
+        Understand</button>
+    </div>
+  </div>
+
+  <script>
+    const registerBtn = document.getElementById("registerBtn");
+    const termsCheck = document.getElementById("termsCheck");
+    const msgBox = document.getElementById("msgBox");
+
+    termsCheck.addEventListener("change", () => {
+      registerBtn.disabled = !termsCheck.checked;
+    });
+
+    function showMsg(msg, type = 'error') {
+      msgBox.style.display = 'block';
+      msgBox.textContent = msg;
+      msgBox.style.color = type === 'success' ? 'var(--success)' : 'var(--error)';
+    }
+
+    async function register() {
+      const firstname = document.getElementById("firstname").value.trim();
+      const lastname = document.getElementById("lastname").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const role = document.getElementById("role").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      msgBox.style.display = 'none';
+
+      if (!firstname || !lastname || !email || !role || !password || !confirmPassword) {
+        showMsg("All institutional fields are mandatory");
+        return;
+      }
+
+      if (password.length < 6) {
+        showMsg("Security password must be at least 6 characters");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showMsg("Security passwords do not match");
+        return;
+      }
+
+      try {
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Initializing...';
+
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firstname, lastname, email, password, role })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showMsg(data.message || "Account initialization failed");
+          resetBtn();
+          return;
+        }
+
+        showMsg("Account successfully initialized! Redirecting to login...", 'success');
+        setTimeout(() => window.location.href = "login.html", 2000);
+
+      } catch (error) {
+        showMsg("Network error: Institutional server unreachable");
+        resetBtn();
+      }
+    }
+
+    function resetBtn() {
+      registerBtn.disabled = !termsCheck.checked;
+      registerBtn.innerHTML = 'Initialize Account <i class="ri-user-add-line"></i>';
+    }
+
+    function openModal() {
+      document.getElementById("termsModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("termsModal").style.display = "none";
+    }
+
+    window.onclick = function (event) {
+      const modal = document.getElementById("termsModal");
+      if (event.target === modal) closeModal();
+    };
+
+    // Initialize theme from localStorage
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
+</body>
+
+</html>

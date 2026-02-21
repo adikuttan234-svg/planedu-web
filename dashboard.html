@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard – planEDU</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <h2 class="logo">planEDU</h2>
+        <div>
+            <button onclick="toggleDark()" class="btn-cta" style="background:#64748b; margin-right:10px;">🌙 Mode</button>
+            <button onclick="logout()" class="btn-cta" style="background:#ef4444;">Logout</button>
+        </div>
+    </nav>
+
+    <main style="padding: 40px 8%;">
+        <h2 style="margin-bottom: 20px;">Weekly Timetable</h2>
+        <div class="table-container">
+            <table id="timetable">
+                <thead>
+                    <tr><th>Day</th><th>Classes / Tasks</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Monday</td><td contenteditable="true" class="edit-cell"></td></tr>
+                    <tr><td>Tuesday</td><td contenteditable="true" class="edit-cell"></td></tr>
+                    <tr><td>Wednesday</td><td contenteditable="true" class="edit-cell"></td></tr>
+                    <tr><td>Thursday</td><td contenteditable="true" class="edit-cell"></td></tr>
+                    <tr><td>Friday</td><td contenteditable="true" class="edit-cell"></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <button onclick="saveData()" class="btn-cta" style="margin-top:20px; width:100%;">Save Schedule</button>
+    </main>
+
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

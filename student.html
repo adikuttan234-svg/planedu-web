@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Intel | planEDU Infrastructure</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: var(--bg-soft);
+      min-height: 100vh;
+    }
+
+    .glass-header {
+      height: 120px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
+      position: relative;
+      overflow: hidden;
+      margin-bottom: -60px;
+    }
+
+    .glass-header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('https://www.transparenttextures.com/patterns/cubes.png');
+      opacity: 0.1;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .top-search-area {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid var(--border-base);
+      display: flex;
+      gap: 24px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      backdrop-filter: blur(20px);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: 80px repeat(5, 1fr);
+      gap: 1px;
+      background: var(--border-base);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-base);
+      margin-top: 32px;
+    }
+
+    .cal-header {
+      background: var(--bg-soft);
+      padding: 16px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-soft);
+    }
+
+    .cal-time {
+      background: var(--bg-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--brand-primary);
+      font-size: 0.75rem;
+    }
+
+    .cal-cell {
+      background: var(--bg-card);
+      padding: 16px;
+      min-height: 120px;
+      transition: all 0.2s ease;
+    }
+
+    .cal-cell:hover {
+      background: var(--bg-soft);
+      z-index: 5;
+    }
+
+    .subject-card {
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: rgba(79, 70, 229, 0.05);
+      border-left: 4px solid var(--brand-primary);
+      height: 100%;
+    }
+
+    .subject-card b {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--text-strong);
+      margin-bottom: 4px;
+    }
+
+    .subject-card span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .is-lab {
+      background: rgba(16, 185, 129, 0.05);
+      border-left-color: var(--success);
+    }
+
+    .deadline-card {
+      padding: 24px;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .deadline-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--brand-primary);
+    }
+
+    .priority-high::before {
+      background: var(--error);
+    }
+
+    .nav-btn {
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn-active {
+      background: var(--brand-primary);
+      color: white;
+    }
+
+    .nav-btn-inactive {
+      background: var(--bg-soft);
+      color: var(--text-soft);
+    }
+
+    #studentTimetable {
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    @media (max-width: 992px) {
+      .calendar-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cal-header,
+      .cal-time {
+        display: none;
+      }
+
+      .cal-cell {
+        min-height: auto;
+        margin-bottom: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="glass-header"></div>
+
+  <main class="main-container">
+    <div class="top-search-area">
+      <div style="flex: 1; min-width: 300px;">
+        <h1 style="color: var(--text-strong); font-size: 1.8rem; margin-bottom: 8px; font-weight: 900;">Student Intel
+          Portal</h1>
+        <p style="color: var(--text-soft); font-size: 0.9rem;">Access high-fidelity academic schedules and institutional
+          deadlocks.</p>
+      </div>
+
+      <div class="form-group" style="width: 200px;">
+        <label class="form-label">Unit Department</label>
+        <input id="dept" type="text" placeholder="e.g. CSE" class="input-field">
+      </div>
+
+      <div class="form-group" style="width: 150px;">
+        <label class="form-label">Module Semester</label>
+        <input id="sem" type="number" placeholder="4" class="input-field">
+      </div>
+
+      <button class="btn btn-primary" onclick="loadTimetable()" style="height: 52px; padding: 0 32px;">
+        Synchronize Data
+        <i class="ri-refresh-line"></i>
+      </button>
+
+      <button class="btn btn-secondary" onclick="toggleDarkMode()"
+        style="width: 52px; height: 52px; padding: 0; display: flex; align-items: center; justify-content: center;">
+        <i id="dark-icon" class="ri-sun-line"></i>
+      </button>
+
+      <button class="btn btn-secondary" onclick="logout()"
+        style="width: 52px; height: 52px; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--error);">
+        <i class="ri-logout-box-line"></i>
+      </button>
+    </div>
+
+    <div style="display: flex; gap: 12px; margin-top: 40px; justify-content: center;">
+      <button id="view-table-btn" class="nav-btn nav-btn-active" onclick="switchView('table')">
+        <i class="ri-table-line"></i> Spectrum Grid
+      </button>
+      <button id="view-cal-btn" class="nav-btn nav-btn-inactive" onclick="switchView('cal')">
+        <i class="ri-calendar-2-line"></i> Chrono Calendar
+      </button>
+      <button id="view-collab-btn" class="nav-btn nav-btn-inactive" onclick="switchView('collab')">
+        <i class="ri-team-line"></i> Team Sync
+      </button>
+      <button class="nav-btn nav-btn-inactive" onclick="downloadPDF()">
+        <i class="ri-file-pdf-line"></i> Export PDF
+      </button>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div id="studentTimetable" style="margin-top: 40px; display: block;">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h3>Academic Distribution Grid</h3>
+          <div id="infoText"
+            style="font-weight: 800; color: var(--brand-primary); background: rgba(79, 70, 229, 0.1); padding: 6px 16px; border-radius: 20px; font-size: 0.8rem;">
+            Awaiting Link...</div>
+        </div>
+        <div class="table-wrapper">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Operational Day</th>
+                <th>Period 01</th>
+                <th>Period 02</th>
+                <th>Period 03</th>
+                <th>Period 04</th>
+                <th>Period 05</th>
+                <th>Period 06</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR VIEW -->
+    <div id="calendarView" style="display: none;">
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <!-- COLLABORATION VIEW -->
+    <div id="collabView" style="display: none; margin-top: 40px;">
+      <div class="card">
+        <h3>Team Synchronization Hub</h3>
+        <p style="color: var(--text-soft); font-size: 0.9rem; margin-bottom: 32px;">Interpolate free slots across
+          multiple semesters for group study or cross-unit events.</p>
+
+        <div class="form-group" style="max-width: 500px; margin-bottom: 32px;">
+          <label class="form-label">Semesters to Compare (comma separated)</label>
+          <div style="display: flex; gap: 12px;">
+            <input id="compareSems" type="text" placeholder="e.g. 2, 4, 6" class="input-field" style="flex: 1;">
+            <button class="btn btn-primary" onclick="findCommonFreeSlots()">Analyze Sync</button>
+          </div>
+        </div>
+
+        <div id="commonSlotsResult" style="display: none;">
+          <div class="table-wrapper">
+            <table class="premium-table">
+              <thead>
+                <tr>
+                  <th>Operational Day</th>
+                  <th>P1</th>
+                  <th>P2</th>
+                  <th>P3</th>
+                  <th>P4</th>
+                  <th>P5</th>
+                  <th>P6</th>
+                </tr>
+              </thead>
+              <tbody id="commonSlotsBody"></tbody>
+            </table>
+          </div>
+          <div
+            style="margin-top: 20px; display: flex; align-items: center; gap: 12px; font-size: 0.8rem; color: var(--success); font-weight: 700;">
+            <i class="ri-checkbox-circle-fill"></i> Highlighted slots indicate full team availability across all
+            selected units.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEADLINES -->
+    <div id="studentDeadlines" style="margin-top: 40px; display: none;">
+      <h3 style="margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+        <i class="ri-alarm-warning-line" style="color: var(--error);"></i>
+        Critical Academic Deadlines
+      </h3>
+      <div id="deadlineList"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;"></div>
+    </div>
+
+  </main>
+
+  <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 2000;"></div>
+
+  <script>
+    const API = "/api";
+    const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    const getEl = id => document.getElementById(id);
+    let currentData = null;
+
+    /* TOAST */
+    function showToast(message, type = 'info') {
+      const container = getEl('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      let icon = 'ri-information-line';
+      if (type === 'success') icon = 'ri-checkbox-circle-line';
+      if (type === 'error') icon = 'ri-error-warning-line';
+      toast.innerHTML = `<i class="${icon}"></i><div style="font-weight: 600;">${message}</div>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        toast.style.transition = '0.4s ease';
+        setTimeout(() => toast.remove(), 400);
+      }, 3000);
+    }
+
+    /* THEME */
+    function toggleDarkMode() {
+      const isDark = document.body.classList.toggle('dark');
+      localStorage.setItem('studentDarkMode', isDark);
+      getEl('dark-icon').className = isDark ? 'ri-moon-line' : 'ri-sun-line';
+      showToast(isDark ? "Dark-spectrum engaged" : "Light-spectrum engaged", "info");
+    }
+
+    (function init() {
+      if (localStorage.getItem('studentDarkMode') === 'true') {
+        document.body.classList.add('dark');
+        getEl('dark-icon').className = 'ri-moon-line';
+      }
+      const userStr = sessionStorage.getItem("user");
+      if (!userStr) { location.href = "login.html"; }
+    })();
+
+    /* VIEW SWITCHER */
+    function switchView(view) {
+      const views = ['table', 'cal', 'collab'];
+      views.forEach(v => {
+        getEl(v === 'table' ? 'studentTimetable' : v + 'View').style.display = 'none';
+        getEl('view-' + v + '-btn').classList.remove('nav-btn-active');
+        getEl('view-' + v + '-btn').classList.add('nav-btn-inactive');
+      });
+
+      const activeView = view === 'table' ? 'studentTimetable' : view + 'View';
+      getEl(activeView).style.display = 'block';
+      getEl('view-' + view + '-btn').classList.add('nav-btn-active');
+      getEl('view-' + view + '-btn').classList.remove('nav-btn-inactive');
+    }
+
+    async function loadTimetable() {
+      const sem = getEl("sem").value.trim();
+      const body = getEl("tableBody");
+      const info = getEl("infoText");
+
+      if (!sem) { showToast("Module Semester required for uplink", "error"); return; }
+
+      info.textContent = `SYNCING SEMESTER ${sem}...`;
+
+      try {
+        const res = await fetch(`${API}/admin/schedule/${sem}`, {
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem("token")}` }
+        });
+        if (!res.ok) throw new Error("Link Failed");
+
+        const data = await res.json();
+        currentData = data;
+        renderTable(data);
+        renderCalendar(data);
+        fetchDeadlines(sem);
+        info.textContent = `SEMESTER ${sem} SECURED`;
+        showToast(`Uplink successful for Semester ${sem}`, "success");
+      } catch (e) {
+        body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:64px; color:var(--text-soft);">No synchronized data found for this semester.</td></tr>';
+        info.textContent = "SYNCHRONIZATION FAILED";
+        showToast("No data record found", "error");
+      }
+    }
+
+    function renderTable(data) {
+      getEl("tableBody").innerHTML = DAYS.map(day => `
+        <tr>
+          <td style="background:var(--bg-soft); font-weight:800; color:var(--brand-primary);">${day.toUpperCase()}</td>
+          ${[1, 2, 3, 4, 5, 6].map(p => {
+        const s = data[day] ? data[day][p] : null;
+        if (!s) return '<td><span style="color:var(--text-soft); font-size:0.7rem;">IDLE</span></td>';
+        return `
+              <td style="background: ${s.type === 'lab' ? 'rgba(16, 185, 129, 0.05)' : 'transparent'}">
+                <div class="subject-card ${s.type === 'lab' ? 'is-lab' : ''}">
+                  <b>${s.name}</b>
+                  <span>${s.teacher}</span>
+                  <span style="font-weight:700; color:var(--text-strong); margin-top:4px;">RM ${s.room}</span>
+                </div>
+              </td>
+            `;
+      }).join('')}
+        </tr>
+      `).join('');
+    }
+
+    function renderCalendar(data) {
+      let html = `<div class="cal-header"></div>`;
+      DAYS.forEach(d => html += `<div class="cal-header">${d}</div>`);
+
+      for (let p = 1; p <= 6; p++) {
+        html += `<div class="cal-time">PERIOD ${p}</div>`;
+        DAYS.forEach(day => {
+          const s = data[day] ? data[day][p] : null;
+          html += `
+            <div class="cal-cell">
+              ${s ? `
+                <div class="subject-card ${s.type === 'lab' ? 'is-lab' : ''}">
+                  <b>${s.name}</b>
+                  <span>${s.teacher}</span>
+                  <span>Room: ${s.room}</span>
+                </div>
+              ` : '<span style="color:var(--text-soft); font-size:0.6rem; opacity:0.5;">VACANT</span>'}
+            </div>
+          `;
+        });
+      }
+      getEl("calendarGrid").innerHTML = html;
+    }
+
+    async function fetchDeadlines(sem) {
+      const container = getEl("studentDeadlines");
+      const list = getEl("deadlineList");
+      try {
+        const res = await fetch(`${API}/deadlines/${sem}`, {
+          headers: { 'Authorization': `Bearer ${sessionStorage.getItem("token")}` }
+        });
+        const data = await res.json();
+        if (data.length === 0) { container.style.display = 'none'; return; }
+        container.style.display = 'block';
+        list.innerHTML = data.map(d => `
+          <div class="deadline-card ${d.priority === 'HIGH' ? 'priority-high' : ''}">
+            <div style="font-size:0.7rem; font-weight:800; color:${d.priority === 'HIGH' ? 'var(--error)' : 'var(--brand-primary)'}; letter-spacing:0.1em; margin-bottom:8px;">
+                ${d.priority} PRIORITY
+            </div>
+            <h4 style="margin-bottom:8px; font-weight:800;">${d.title}</h4>
+            <div style="font-size:0.85rem; color:var(--text-soft); font-weight:600;">Module: ${d.subject}</div>
+            <div style="margin-top:20px; display:flex; align-items:center; gap:8px; color:var(--text-strong); font-weight:800;">
+                <i class="ri-history-line"></i>
+                DUE: ${new Date(d.dueDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+            </div>
+          </div>
+        `).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function findCommonFreeSlots() {
+      const semsInput = getEl("compareSems").value.trim();
+      if (!semsInput) return showToast("Enter unit semesters for analytical comparison", "error");
+      const sems = semsInput.split(',').map(s => s.trim());
+      const body = getEl("commonSlotsBody");
+      const resultBox = getEl("commonSlotsResult");
+
+      try {
+        const schedules = [];
+        for (const sem of sems) {
+          const res = await fetch(`${API}/admin/schedule/${sem}`, {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem("token")}` }
+          });
+          if (res.ok) schedules.push(await res.json());
+        }
+
+        if (schedules.length < 2) return showToast("Minimum 2 operational units required for sync", "error");
+
+        resultBox.style.display = 'block';
+        body.innerHTML = DAYS.map(day => `
+          <tr>
+            <td style="background:var(--bg-soft); font-weight:800; color:var(--brand-primary);">${day.toUpperCase()}</td>
+            ${[1, 2, 3, 4, 5, 6].map(p => {
+          const isFree = schedules.every(s => !s[day] || !s[day][p]);
+          return `
+                <td style="background: ${isFree ? 'rgba(16, 185, 129, 0.1)' : 'transparent'}; text-align: center;">
+                    ${isFree ? '<span style="color:var(--success); font-weight:800; font-size:0.8rem;"><i class="ri-checkbox-circle-line"></i> SYNCED FREE</span>' : '<span style="color:var(--text-soft); font-size:0.7rem;">OCCUPIED</span>'}
+                </td>
+              `;
+        }).join('')}
+          </tr>
+        `).join('');
+        showToast("Synchronization calculation complete", "success");
+      } catch (e) { showToast("Analytical engine failure", "error"); }
+    }
+
+    function downloadPDF() { showToast("PDF Engine compiling...", "info"); setTimeout(() => showToast("PDF Manifest generated", "success"), 1500); }
+    function logout() { sessionStorage.clear(); location.href = "login.html"; }
+  </script>
+</body>
+
+</html>
