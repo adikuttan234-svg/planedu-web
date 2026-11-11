@@ -10,6 +10,7 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="theme.js"></script>
   <style>
     body {
       display: flex;
@@ -227,10 +228,10 @@
 
     <div style="padding: 16px; border-top: 1px solid var(--border-base);">
       <button class="nav-item" onclick="toggleDarkMode()">
-        <i id="dark-icon" class="ri-sun-line"></i> <span id="dark-text">Switch Mode</span>
+        <i id="dark-icon" class="ri-moon-line"></i> <span id="dark-text">Toggle Theme</span>
       </button>
       <button class="nav-item" onclick="logout()" style="color: var(--error);">
-        <i class="ri-logout-box-line"></i> <span>Terminate Session</span>
+        <i class="ri-logout-box-line"></i> <span>Sign Out</span>
       </button>
     </div>
   </aside>
@@ -238,13 +239,15 @@
   <main class="main-content">
     <header class="top-bar">
       <div style="display: flex; flex-direction: column;">
-        <h2 id="page-title" style="margin: 0; font-size: 1.4rem;">Pulse Dashboard</h2>
-        <span id="welcomeMsg" style="font-size: 0.85rem; color: var(--text-muted);">Synchronizing faculty resource
-          data...</span>
+        <h2 id="page-title" style="margin: 0; font-size: 1.4rem;">Faculty Dashboard</h2>
+        <span id="welcomeMsg" style="font-size: 0.85rem; color: var(--text-muted);">Institutional Faculty Portal</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 24px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle color theme" aria-label="Toggle theme">
+          <i class="ri-moon-line"></i>
+        </button>
         <div id="liveClock"
-          style="font-family: monospace; font-weight: 800; color: var(--brand-primary); background: rgba(79, 70, 229, 0.1); padding: 8px 16px; border-radius: 30px;">
+          style="font-family: monospace; font-weight: 700; color: var(--brand-primary); background: var(--brand-primary-subtle); padding: 7px 16px; border-radius: var(--radius-full); font-size: 0.9rem; border: 1px solid var(--border-base);">
           00:00:00</div>
         <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 2000;"></div>
       </div>
@@ -481,20 +484,27 @@
 
     /* DARK MODE */
     function toggleDarkMode() {
-      const isDark = document.body.classList.toggle('dark');
-      localStorage.setItem('facultyDarkMode', isDark);
-      const icon = getEl('dark-icon');
-      icon.className = isDark ? 'ri-moon-line' : 'ri-sun-line';
-      showToast(isDark ? "Dark-spectrum mode engaged" : "Light-spectrum mode engaged", "info");
+      const current = localStorage.getItem('theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      localStorage.setItem('facultyDarkMode', next === 'dark');
+      document.documentElement.setAttribute('data-theme', next);
+      document.body.classList.toggle('dark', next === 'dark');
+      document.querySelectorAll('#dark-icon, #theme-toggle i').forEach(icon => {
+        icon.className = next === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+      });
+      showToast(next === 'dark' ? "Dark theme enabled" : "Light theme enabled", "info");
     }
 
     /* INITIALIZATION */
     (async function init() {
       startClock();
-      if (localStorage.getItem('facultyDarkMode') === 'true') {
-        document.body.classList.add('dark');
-        getEl('dark-icon').className = 'ri-moon-line';
-      }
+      const savedTheme = localStorage.getItem('theme') || (localStorage.getItem('facultyDarkMode') === 'true' ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.body.classList.toggle('dark', savedTheme === 'dark');
+      document.querySelectorAll('#dark-icon, #theme-toggle i').forEach(icon => {
+        icon.className = savedTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+      });
 
       const userStr = sessionStorage.getItem("user");
       if (!userStr) {
@@ -503,8 +513,8 @@
       }
       currentUser = JSON.parse(userStr);
 
-      getEl('facNameDisplay').innerText = currentUser.name || "Faculty Asset";
-      getEl('welcomeMsg').innerText = `HQ Status: Synchronized for ${currentUser.name || "Personnel"}.`;
+      getEl('facNameDisplay').innerText = currentUser.name || "Faculty Member";
+      getEl('welcomeMsg').innerText = `Welcome, ${currentUser.name || "Faculty Member"}.`;
 
       if (currentUser.profileImg) {
         updateProfilePreview(currentUser.profileImg);

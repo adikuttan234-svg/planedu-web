@@ -4,11 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Intel | planEDU Infrastructure</title>
+  <title>Student Portal | planEDU</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="theme.js"></script>
   <style>
     body {
       background: var(--bg-soft);
@@ -212,21 +213,21 @@
       </div>
 
       <div class="form-group" style="width: 150px;">
-        <label class="form-label">Module Semester</label>
+        <label class="form-label">Semester</label>
         <input id="sem" type="number" placeholder="4" class="input-field">
       </div>
 
-      <button class="btn btn-primary" onclick="loadTimetable()" style="height: 52px; padding: 0 32px;">
-        Synchronize Data
+      <button class="btn btn-primary" onclick="loadTimetable()" style="height: 52px; padding: 0 28px;">
+        <span>Load Schedule</span>
         <i class="ri-refresh-line"></i>
       </button>
 
-      <button class="btn btn-secondary" onclick="toggleDarkMode()"
+      <button id="theme-toggle" class="btn btn-secondary" onclick="toggleDarkMode()" title="Toggle color theme"
         style="width: 52px; height: 52px; padding: 0; display: flex; align-items: center; justify-content: center;">
-        <i id="dark-icon" class="ri-sun-line"></i>
+        <i id="dark-icon" class="ri-moon-line"></i>
       </button>
 
-      <button class="btn btn-secondary" onclick="logout()"
+      <button class="btn btn-secondary" onclick="logout()" title="Sign Out"
         style="width: 52px; height: 52px; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--error);">
         <i class="ri-logout-box-line"></i>
       </button>
@@ -234,10 +235,10 @@
 
     <div style="display: flex; gap: 12px; margin-top: 40px; justify-content: center;">
       <button id="view-table-btn" class="nav-btn nav-btn-active" onclick="switchView('table')">
-        <i class="ri-table-line"></i> Spectrum Grid
+        <i class="ri-table-line"></i> Timetable Grid
       </button>
       <button id="view-cal-btn" class="nav-btn nav-btn-inactive" onclick="switchView('cal')">
-        <i class="ri-calendar-2-line"></i> Chrono Calendar
+        <i class="ri-calendar-2-line"></i> Calendar View
       </button>
       <button id="view-collab-btn" class="nav-btn nav-btn-inactive" onclick="switchView('collab')">
         <i class="ri-team-line"></i> Team Sync
@@ -361,17 +362,24 @@
 
     /* THEME */
     function toggleDarkMode() {
-      const isDark = document.body.classList.toggle('dark');
-      localStorage.setItem('studentDarkMode', isDark);
-      getEl('dark-icon').className = isDark ? 'ri-moon-line' : 'ri-sun-line';
-      showToast(isDark ? "Dark-spectrum engaged" : "Light-spectrum engaged", "info");
+      const current = localStorage.getItem('theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      localStorage.setItem('studentDarkMode', next === 'dark');
+      document.documentElement.setAttribute('data-theme', next);
+      document.body.classList.toggle('dark', next === 'dark');
+      const icon = getEl('dark-icon');
+      if (icon) icon.className = next === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+      showToast(next === 'dark' ? "Dark theme enabled" : "Light theme enabled", "info");
     }
 
     (function init() {
-      if (localStorage.getItem('studentDarkMode') === 'true') {
-        document.body.classList.add('dark');
-        getEl('dark-icon').className = 'ri-moon-line';
-      }
+      const savedTheme = localStorage.getItem('theme') || (localStorage.getItem('studentDarkMode') === 'true' ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.body.classList.toggle('dark', savedTheme === 'dark');
+      const icon = getEl('dark-icon');
+      if (icon) icon.className = savedTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+
       const userStr = sessionStorage.getItem("user");
       if (!userStr) { location.href = "login.html"; }
     })();

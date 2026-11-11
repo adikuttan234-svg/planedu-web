@@ -60,7 +60,8 @@ if (USE_LOCAL_DB) {
   Deadline = require("./models/Deadline");
   Log = require("./models/Log");
 
-  mongoose.connect("mongodb+srv://adikuttan234:Adithyan4957@cluster0.jxkmpkf.mongodb.net/?appName=Cluster0")
+  const mongoURI = process.env.MONGO_URI || "mongodb+srv://adikuttan234:Adithyan4957@cluster0.jxkmpkf.mongodb.net/?appName=Cluster0";
+  mongoose.connect(mongoURI)
     .then(async () => {
       console.log("MongoDB Connected");
       await seedAdmin();
