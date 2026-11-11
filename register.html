@@ -315,7 +315,8 @@
         registerBtn.disabled = true;
         registerBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Registering...';
 
-        const response = await fetch("/api/auth/register", {
+        const apiBase = (window.API_BASE || "") + "/api";
+        const response = await fetch(`${apiBase}/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ firstname, lastname, email, password, role })

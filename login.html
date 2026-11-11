@@ -160,7 +160,8 @@
       btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Authenticating...';
 
       try {
-        const response = await fetch("/api/login", {
+        const apiBase = (window.API_BASE || "") + "/api";
+        const response = await fetch(`${apiBase}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password })

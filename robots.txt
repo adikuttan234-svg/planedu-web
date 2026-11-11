@@ -3,3 +3,4 @@ Allow: /
 Disallow: /admin.html
 
 Sitemap: https://adikuttan234-svg.github.io/planedu-web/sitemap.xml
+

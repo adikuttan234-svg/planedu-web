@@ -242,7 +242,11 @@
         <h2 id="page-title" style="margin: 0; font-size: 1.4rem;">Faculty Dashboard</h2>
         <span id="welcomeMsg" style="font-size: 0.85rem; color: var(--text-muted);">Institutional Faculty Portal</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <button class="btn btn-secondary btn-sm" onclick="exportFacultyCalendar()" title="Export your assigned classes to Google / Apple Calendar">
+          <i class="ri-calendar-event-line"></i>
+          <span>Add to Calendar</span>
+        </button>
         <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle color theme" aria-label="Toggle theme">
           <i class="ri-moon-line"></i>
         </button>
@@ -442,12 +446,49 @@
   </div>
 
   <script>
-    const API = "/api";
+    const API = (window.API_BASE || "") + "/api";
     let currentUser = null;
     let allSchedules = [];
     let allSubjects = [];
     let allFacultyDetails = [];
     const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+    function exportFacultyCalendar() {
+      if (!allSchedules || allSchedules.length === 0 || !currentUser) {
+        showToast("Schedule data is loading. Please wait a moment.", "warning");
+        return;
+      }
+      const myName = (currentUser.name || "").trim().toLowerCase();
+      const mySchedule = { Monday: {}, Tuesday: {}, Wednesday: {}, Thursday: {}, Friday: {} };
+      let classCount = 0;
+
+      allSchedules.forEach(s => {
+        for (let day in s.scheduleData) {
+          for (let p in s.scheduleData[day]) {
+            const slot = s.scheduleData[day][p];
+            if (slot && slot.teacher && slot.teacher.toLowerCase().trim() === myName) {
+              mySchedule[day][p] = {
+                name: `${slot.name} (Sem ${s.sem})`,
+                code: slot.code || '',
+                room: slot.room || '',
+                teacher: slot.teacher
+              };
+              classCount++;
+            }
+          }
+        }
+      });
+
+      if (classCount === 0) {
+        showToast("No classes currently assigned to your faculty profile.", "info");
+        return;
+      }
+
+      if (window.downloadTimetableICS) {
+        window.downloadTimetableICS(mySchedule, `planEDU_${currentUser.name || 'Faculty'}_Schedule`);
+        showToast("Calendar file (.ics) downloaded. Open it to sync with Google/Apple Calendar!", "success");
+      }
+    }
 
     const getEl = (id) => document.getElementById(id);
 

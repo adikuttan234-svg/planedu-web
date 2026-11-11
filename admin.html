@@ -782,7 +782,7 @@
         </div>
   </main>
   <script> // API Base URL
-    const API = "/api";
+    const API = (window.API_BASE || "") + "/api";
 
     // Authentication Helper
     const getToken = () => sessionStorage.getItem("token");

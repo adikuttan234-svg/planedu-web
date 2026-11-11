@@ -6,11 +6,54 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const app = express();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8';
+
+// Security Headers Middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// Lightweight In-Memory Rate Limiter for Sensitive Routes
+const rateLimits = new Map();
+function rateLimiter(maxAttempts, windowMs) {
+  return function (req, res, next) {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const key = `${req.path}_${ip}`;
+    const now = Date.now();
+    const record = rateLimits.get(key) || { count: 0, resetAt: now + windowMs };
+
+    if (now > record.resetAt) {
+      record.count = 1;
+      record.resetAt = now + windowMs;
+    } else {
+      record.count++;
+    }
+
+    rateLimits.set(key, record);
+
+    if (record.count > maxAttempts) {
+      return res.status(429).json({
+        message: "Too many attempts. Please try again after a few minutes."
+      });
+    }
+    next();
+  };
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, record] of rateLimits.entries()) {
+    if (now > record.resetAt) rateLimits.delete(key);
+  }
+}, 15 * 60 * 1000);
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Serve Static Frontend Files
 const path = require("path");
@@ -25,18 +68,23 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
-
-    // Check approval status in token or DB? 
-    // Better to rely on DB lookup during login, token is valid for session.
-    // If strict revocation needed, would need to check DB here.
-    // For now, simple token verify is enough.
     req.user = user;
     next();
   });
 }
 
+// Role Check Helper Middleware
+function requireRole(role) {
+  return function (req, res, next) {
+    if (!req.user || req.user.role !== role) {
+      return res.status(403).json({ message: "Forbidden: Insufficient privileges" });
+    }
+    next();
+  };
+}
+
 // --- DATABASE SWITCHER ---
-const USE_LOCAL_DB = process.env.NODE_ENV !== 'production';
+const USE_LOCAL_DB = process.env.NODE_ENV !== 'production' && !process.env.MONGO_URI;
 
 let User, Faculty, Subject, Schedule, Deadline, Log;
 
@@ -74,7 +122,7 @@ async function seedAdminLocal() {
   const exists = await User.findOne({ email: adminEmail });
   if (!exists) {
     const hashedPassword = await bcrypt.hash("admin123", 10);
-    await new User({ name: "Admin", email: adminEmail, password: hashedPassword, role: "ADMIN" }).save();
+    await new User({ name: "Admin", email: adminEmail, password: hashedPassword, role: "ADMIN", isApproved: true }).save();
     console.log("Local Admin account seeded");
   }
 }
@@ -83,7 +131,7 @@ async function seedAdmin() {
   const exists = await User.findOne({ email: adminEmail });
   if (!exists) {
     const hashedPassword = await bcrypt.hash("admin123", 10);
-    await new User({ name: "Admin", email: adminEmail, password: hashedPassword, role: "ADMIN" }).save();
+    await new User({ name: "Admin", email: adminEmail, password: hashedPassword, role: "ADMIN", isApproved: true }).save();
     console.log("Admin account seeded");
   }
 }
@@ -91,8 +139,8 @@ async function seedAdmin() {
 async function addLog(user, action, details) {
   try {
     const logData = {
-      userId: user.id || 'system',
-      userName: user.name || 'System',
+      userId: (user && user.id) || 'system',
+      userName: (user && user.name) || 'System',
       action,
       details,
       timestamp: new Date().toISOString()
@@ -108,20 +156,34 @@ app.get("/", (req, res) => {
   res.send("Backend running");
 });
 
-/* REGISTER */
-app.post("/api/auth/register", async (req, res) => {
+/* REGISTER (Hardened against NoSQL injection and Privilege Escalation) */
+app.post("/api/auth/register", rateLimiter(15, 15 * 60 * 1000), async (req, res) => {
   try {
-    const { firstname, lastname, email, password, role } = req.body;
-    // Combine name if sent separately, or use name if sent as one
-    const name = firstname && lastname ? `${firstname} ${lastname}` : req.body.name;
+    const firstname = typeof req.body.firstname === 'string' ? req.body.firstname.trim() : '';
+    const lastname = typeof req.body.lastname === 'string' ? req.body.lastname.trim() : '';
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
+    const requestedRole = typeof req.body.role === 'string' ? req.body.role.trim() : '';
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    // Combine name
+    const name = firstname && lastname ? `${firstname} ${lastname}` : (typeof req.body.name === 'string' ? req.body.name.trim() : 'User');
+
+    // CRITICAL SECURITY FIX: Never allow direct registration as ADMIN
+    const role = (requestedRole === 'FACULTY' || requestedRole === 'STUDENT') ? requestedRole : 'STUDENT';
+    const isApproved = role === 'FACULTY' ? false : true;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "Email ID is already registered" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Faculty need approval
-    const isApproved = role === 'FACULTY' ? false : true;
 
     const newUser = new User({ name, email, password: hashedPassword, role, isApproved });
     await newUser.save();
@@ -133,28 +195,32 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
-/* LOGIN */
-app.post("/api/login", async (req, res) => {
+/* LOGIN (Hardened against NoSQL injection) */
+app.post("/api/login", rateLimiter(25, 15 * 60 * 1000), async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : null;
+    const password = typeof req.body.password === 'string' ? req.body.password : null;
+
+    if (!password) {
+      return res.status(400).json({ message: "Password is required" });
+    }
 
     let user;
     if (email) {
       user = await User.findOne({ email });
     } else {
-      // If no email provided, assume it's a password-only Admin login
-      // NOTE: This assumes only ONE admin exists or checks against the first one found.
+      // Superuser password check
       user = await User.findOne({ role: "ADMIN" });
     }
 
-    if (!user) return res.status(400).json({ message: "User not found" });
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     // Check Approval
     if (user.isApproved === false) {
-      return res.status(403).json({ message: "Account pending admin approval" });
+      return res.status(403).json({ message: "Account pending administrative approval" });
     }
 
     const token = jwt.sign(
@@ -189,19 +255,20 @@ app.get("/api/faculty", async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.post("/api/faculty", authenticateToken, async (req, res) => {
+app.post("/api/faculty", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
     const newFaculty = new Faculty(req.body);
     await newFaculty.save();
-    // For LocalDB, return data property if it exists, else return doc
     res.json(newFaculty.data || newFaculty);
+    addLog(req.user, "FACULTY_ADD", `Added faculty ${req.body.name}`);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.delete("/api/faculty/:id", authenticateToken, async (req, res) => {
+app.delete("/api/faculty/:id", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
     await Faculty.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted" });
+    addLog(req.user, "FACULTY_DELETE", `Removed faculty ${req.params.id}`);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -273,47 +340,42 @@ app.get("/api/subject", async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.post("/api/subject", authenticateToken, async (req, res) => {
+app.post("/api/subject", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
-    console.log("Adding Subject:", req.body);
     const newSubject = new Subject(req.body);
     await newSubject.save();
-    console.log("Subject Saved:", newSubject.data || newSubject);
     res.json(newSubject.data || newSubject);
     addLog(req.user, "SUBJECT_ADD", `Added subject ${req.body.name}`);
   } catch (err) {
-    console.error("Subject Save Error:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
 /* ADMIN APPROVAL ROUTES */
-app.get("/api/admin/pending-users", authenticateToken, async (req, res) => {
+app.get("/api/admin/pending-users", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
-    // Only Admin can access
-    if (req.user.role !== 'ADMIN') return res.sendStatus(403);
     const users = await User.find({ isApproved: false });
     res.json(users);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.post("/api/admin/approve-user", authenticateToken, async (req, res) => {
+app.post("/api/admin/approve-user", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
-    if (req.user.role !== 'ADMIN') return res.sendStatus(403);
     const { userId } = req.body;
     await User.findOneAndUpdate({ _id: userId }, { isApproved: true }, { new: true });
     res.json({ message: "User approved" });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.delete("/api/subject/:id", authenticateToken, async (req, res) => {
+app.delete("/api/subject/:id", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
     await Subject.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted" });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
+
 /* SCHEDULE PERSISTENCE ROUTES */
-app.post("/api/admin/schedule", authenticateToken, async (req, res) => {
+app.post("/api/admin/schedule", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
     const { sem, scheduleData } = req.body;
     // Update existing or create new
@@ -556,20 +618,22 @@ app.get("/api/rooms", async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.post("/api/rooms", authenticateToken, async (req, res) => {
+app.post("/api/rooms", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
     const Room = USE_LOCAL_DB ? require("./utils/LocalDB").Room : null;
     const newRoom = new Room(req.body);
     await newRoom.save();
     res.json(newRoom.data || newRoom);
+    addLog(req.user, "ROOM_ADD", `Added room ${req.body.name || req.body.number || ''}`);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-app.delete("/api/rooms/:id", authenticateToken, async (req, res) => {
+app.delete("/api/rooms/:id", authenticateToken, requireRole('ADMIN'), async (req, res) => {
   try {
     const Room = USE_LOCAL_DB ? require("./utils/LocalDB").Room : null;
     await Room.findByIdAndDelete(req.params.id);
     res.json({ message: "Room deleted" });
+    addLog(req.user, "ROOM_DELETE", `Deleted room ${req.params.id}`);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -679,12 +743,16 @@ app.get("/api/admin/faculty-load-check/:name", authenticateToken, async (req, re
 /* DEADLINES */
 app.post("/api/deadlines", authenticateToken, async (req, res) => {
   try {
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'FACULTY') {
+      return res.status(403).json({ message: "Only administrators and faculty can create deadlines" });
+    }
     const newDeadline = new Deadline({
       ...req.body,
       createdAt: Date.now()
     });
     await newDeadline.save();
     res.json(newDeadline.data || newDeadline);
+    addLog(req.user, "DEADLINE_ADD", `Created deadline ${req.body.title || ''}`);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -697,8 +765,12 @@ app.get("/api/deadlines/:sem", async (req, res) => {
 
 app.delete("/api/deadlines/:id", authenticateToken, async (req, res) => {
   try {
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'FACULTY') {
+      return res.status(403).json({ message: "Insufficient privileges" });
+    }
     await Deadline.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted" });
+    addLog(req.user, "DEADLINE_DELETE", `Deleted deadline ${req.params.id}`);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 

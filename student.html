@@ -222,6 +222,12 @@
         <i class="ri-refresh-line"></i>
       </button>
 
+      <button class="btn btn-secondary" onclick="exportStudentCalendar()" title="Export weekly schedule to Google Calendar / Apple Calendar"
+        style="height: 52px; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="ri-calendar-event-line"></i>
+        <span>Add to Calendar</span>
+      </button>
+
       <button id="theme-toggle" class="btn btn-secondary" onclick="toggleDarkMode()" title="Toggle color theme"
         style="width: 52px; height: 52px; padding: 0; display: flex; align-items: center; justify-content: center;">
         <i id="dark-icon" class="ri-moon-line"></i>
@@ -337,10 +343,22 @@
   <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 2000;"></div>
 
   <script>
-    const API = "/api";
+    const API = (window.API_BASE || "") + "/api";
     const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const getEl = id => document.getElementById(id);
     let currentData = null;
+
+    function exportStudentCalendar() {
+      if (!currentData || typeof currentData !== 'object' || Object.keys(currentData).length === 0) {
+        showToast("Please enter a semester and click Load Schedule first", "warning");
+        return;
+      }
+      const sem = (getEl("sem").value || "").trim() || "4";
+      if (window.downloadTimetableICS) {
+        window.downloadTimetableICS(currentData, `planEDU_Semester_${sem}_Timetable`);
+        showToast("Calendar file (.ics) downloaded. Open it to add classes to Google/Apple Calendar!", "success");
+      }
+    }
 
     /* TOAST */
     function showToast(message, type = 'info') {
